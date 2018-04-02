@@ -14,8 +14,8 @@ from telegram.inline.inlinekeyboardmarkup import InlineKeyboardMarkup
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-_confirmations = ['⚽', '💩', '🤔']
-_with_me_confirmations = ['+1', '-1']
+CONFIRMATIONS = ['⚽', '💩', '🤔']
+WITH_ME_CONFIRMATIONS = ['+1', '-1']
 
 DEFAULT_MATCH_DAYS = [1, 4]
 
@@ -42,7 +42,7 @@ class Player:
             logger.error(f"Unable to apply confirmation '{value}' for '{self.name}' player")
 
     def __repr__(self):
-        return f"{self.name}|going:{self.confirmation}|with_addition:{self.with_me}"
+        return f"name:{self.name}|confirmation:{self.confirmation}|with_me:{self.with_me}"
 
 
 class Match:
@@ -56,21 +56,21 @@ class Match:
 
         player = self.squad[username]
 
-        if value in _confirmations:
+        if value in CONFIRMATIONS:
             player.confirm(value)
-        elif value in _with_me_confirmations:
+        elif value in WITH_ME_CONFIRMATIONS:
             player.confirm_with_me(value)
 
     def stats(self):
         stats = {'total': {}}
 
-        for c in _confirmations:
+        for c in CONFIRMATIONS:
             stats[c] = list(filter(lambda p: p.confirmation == c, self.squad.values()))
 
         stats['total']['voted'] = sum(map(lambda v: len(v), stats.values()))
         stats['total']['with_me'] = sum(list(filter(
             lambda v: v > 0, map(lambda p: p.with_me, self.squad.values()))))
-        stats['total']['all'] = stats['total']['with_me'] + len(stats[_confirmations[0]])
+        stats['total']['all'] = stats['total']['with_me'] + len(stats[CONFIRMATIONS[0]])
         return stats
 
     def __repr__(self):
@@ -114,7 +114,7 @@ class Team:
         return self.match, False
 
     def __str__(self):
-        return f"Who we are? The {self.name} !"
+        return f"Who we are? The `{self.name}` !"
 
     def __repr__(self):
         return f"{self.name}|Current match:{self.match}"
@@ -188,8 +188,8 @@ class GameManager:
     @staticmethod
     def send_match_stats(bot, chat_id, match, message_id=None):
         keyboard = [
-            MatchConfirmationView.pack_buttons(_confirmations),
-            MatchConfirmationView.pack_buttons(_with_me_confirmations)
+            MatchConfirmationView.pack_buttons(CONFIRMATIONS),
+            MatchConfirmationView.pack_buttons(WITH_ME_CONFIRMATIONS)
         ]
         if not message_id:
             return bot.send_message(chat_id, MatchConfirmationView.build_match_stats_view(match), caption="caption",
@@ -204,10 +204,10 @@ class GameManager:
 
 
 class MatchConfirmationView:
-    captions = {_confirmations[0]: "[PLAY]", _confirmations[1]: "[REJECT]"}
+    captions = {CONFIRMATIONS[0]: "[PLAY]", CONFIRMATIONS[1]: "[REJECT]"}
 
     match_stats_view = """
-<b>{{date}}</b> | Players - <b>{{stats['total']['all']}}</b>
+| <b>{{date}}</b> | Players - <b>{{stats['total']['all']}}</b> |
 {% for c in confirmations %}
 <b>{{c}}[{{stats[c]|length}}]</b>:
 {% for t in stats[c] %}  <i>{{loop.index}}.{{t.name}} {% if t.with_me>0 %}(+{{t.with_me}}){% endif %}</i>{% endfor %}
@@ -218,7 +218,7 @@ class MatchConfirmationView:
     @staticmethod
     def build_match_stats_view(match):
         return MatchConfirmationView._stats_template.render(date=match.date, stats=match.stats(),
-                                                            confirmations=_confirmations,
+                                                            confirmations=CONFIRMATIONS,
                                                             button_caption=MatchConfirmationView.captions)
 
     @staticmethod
