@@ -228,9 +228,9 @@ class MatchConfirmationView:
 
 
 def main():
-    token = os.environ.get('TG_BOT_TOKEN', None)
+    token = os.environ.get('TG_BOT_TOKEN')
     if not token:
-        raise ValueError('Bot token is not specified')
+        raise ValueError('Telegram Bot token is not specified')
     client = MongoClient(os.environ.get('TG_MONGO_URI', 'mongodb://127.0.0.1/tigers'))
     if not client:
         raise ValueError('Mongo URI is not specified')
