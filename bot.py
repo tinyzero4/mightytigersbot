@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 import datetime
+import json
 import logging
 import os
 
+import jsonpickle
 from jinja2 import Environment
+from pymongo import MongoClient
 from telegram.ext import Updater, CommandHandler, CallbackQueryHandler
 from telegram.inline.inlinekeyboardbutton import InlineKeyboardButton
 from telegram.inline.inlinekeyboardmarkup import InlineKeyboardMarkup
@@ -11,7 +14,7 @@ from telegram.inline.inlinekeyboardmarkup import InlineKeyboardMarkup
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-_confirmations = ['+', '-']
+_confirmations = ['⚽', '💩', '🤔']
 _with_me_confirmations = ['+1', '-1']
 
 DEFAULT_MATCH_DAYS = [1, 4]
@@ -19,20 +22,12 @@ DEFAULT_MATCH_DAYS = [1, 4]
 BOT_COMMAND_NEW_TEAM = 'newteam'
 BOT_COMMAND_NEXT_MATCH = 'nextmatch'
 
-PARSE_MODE_MD = 'Markdown'
-PARSE_MODE_HTML = 'Html'
-
-BUTTON_CAPTION = {
-    '+': "\u26BD[Y]",
-    '-': '💩[N]',
-}
-
 
 class Player:
     def __init__(self, name, username):
         self.name = name
         self.username = username
-        self.confirmation = None
+        self.confirmation = '🤔'
         self.with_me = 0
 
     def confirm(self, value):
@@ -56,7 +51,7 @@ class Match:
         self.squad = {}
 
     def confirm(self, name, username, value):
-        if not username in self.squad:
+        if username not in self.squad:
             self.squad[username] = Player(name, username)
 
         player = self.squad[username]
@@ -103,10 +98,12 @@ class Schedule:
 
 
 class Team:
-    def __init__(self, schedule, name='MightyTigers'):
+    def __init__(self, team_id, schedule, name='MightyTigers'):
+        self._id = team_id
+        self.team_id = team_id
         self.name = name
-        self.schedule = schedule
         self.match = None
+        self.schedule = schedule
 
     def next_match(self):
         next_match_date = self.schedule.next_match_date()
@@ -125,55 +122,81 @@ class Team:
 
 class GameManager:
 
-    def __init__(self, tg):
+    def __init__(self, tg, db):
         tg.dispatcher.add_handler(CommandHandler(BOT_COMMAND_NEW_TEAM, self.new_team))
         tg.dispatcher.add_handler(CommandHandler(BOT_COMMAND_NEXT_MATCH, self.next_match))
         tg.dispatcher.add_handler(CallbackQueryHandler(self.on_confirmation))
         tg.dispatcher.add_error_handler(GameManager.on_error)
-        self.teams = {}
-        self.__tg = tg
+
         self.view = MatchConfirmationView()
+        self._db = db
+        self._tg = tg
 
     def start(self):
-        self.__tg.start_polling(poll_interval=1, timeout=30)
-        self.__tg.idle()
+        self._tg.start_polling(poll_interval=1, timeout=30)
+        self._tg.idle()
 
     def new_team(self, bot, update):
-        chat_id = update.message.chat_id
-        if update.message.chat_id not in self.teams:
-            schedule = Schedule(os.environ.get('MATCH_DAYS', list(DEFAULT_MATCH_DAYS)))
-            self.teams[chat_id] = Team(schedule, update.message.chat.title)
-            bot.send_message(chat_id, "*Let's Play!*", parse_mode=PARSE_MODE_MD)
+        team = self.find_team(update.message.chat_id)
+        if team is None:
+            team = Team(update.message.chat_id, Schedule(os.environ.get('MATCH_DAYS', list(DEFAULT_MATCH_DAYS))),
+                        update.message.chat.title)
+            self.save_team(team)
+            bot.send_message(team.team_id, "*Let's Play!*", parse_mode='Markdown')
+        return team
 
     def next_match(self, bot, update):
-        chat_id = update.message.chat_id
-        if chat_id not in self.teams:
-            self.new_team(bot, update)
+        team = self.find_team(update.message.chat_id)
+        if team is None:
+            team = self.new_team(bot, update)
 
-        (match, is_new) = self.teams[chat_id].next_match()
+        (match, is_new) = team.next_match()
         if is_new:
-            self.show_match_stats(bot, chat_id, match)
+            self.update_team(team)
+            self.send_match_stats(bot, team.team_id, match)
 
     def on_confirmation(self, bot, update):
-        if update.callback_query and update.callback_query.message:
+        if self.__is_unprocessed_update(update) and update.callback_query and update.callback_query.message:
             message = update.callback_query.message
-            if message.chat_id in self.teams:
+            team = self.find_team(message.chat_id)
+            if team is not None and team.match is not None:
                 player_profile = update.callback_query.from_user
-                team = self.teams[message.chat_id]
                 team.match.confirm(player_profile.full_name, player_profile.username, update.callback_query.data)
-                self.show_match_stats(bot, message.chat_id, team.match, message.message_id)
+
+                self.__store_update(update.update_id, message.date)
+                self.update_team(team)
+                self.send_match_stats(bot, message.chat_id, team.match, message.message_id)
         else:
             logger.warning(f"Unknown response type: {update}")
 
+    def find_team(self, team_id):
+        team_def = self._db.teams.find_one({'_id': team_id})
+        return jsonpickle.decode(json.dumps(team_def)) if team_def is not None else None
+
+    def save_team(self, team):
+        self._db.teams.insert_one(json.loads(jsonpickle.encode(team)))
+
+    def update_team(self, team):
+        self._db.teams.update({'_id': team.team_id}, json.loads(jsonpickle.encode(team)))
+
+    def __is_unprocessed_update(self, update):
+        return self._db.confirmations.find_one({'_id': update.update_id}) is None
+
+    def __store_update(self, update_id, date):
+        self._db.confirmations.insert_one({'_id': update_id, 'date': date})
+
     @staticmethod
-    def show_match_stats(bot, chat_id, match, message_id=None):
-        keyboard = [MatchConfirmationView.pack_buttons(_confirmations + _with_me_confirmations)]
+    def send_match_stats(bot, chat_id, match, message_id=None):
+        keyboard = [
+            MatchConfirmationView.pack_buttons(_confirmations),
+            MatchConfirmationView.pack_buttons(_with_me_confirmations)
+        ]
         if not message_id:
-            bot.send_message(chat_id, MatchConfirmationView.build_match_stats_view(match), caption="caption",
-                             parse_mode=PARSE_MODE_HTML, reply_markup=InlineKeyboardMarkup(keyboard))
+            return bot.send_message(chat_id, MatchConfirmationView.build_match_stats_view(match), caption="caption",
+                                    parse_mode='html', reply_markup=InlineKeyboardMarkup(keyboard), timeout=5000)
         else:
-            bot.edit_message_text(MatchConfirmationView.build_match_stats_view(match), chat_id, message_id,
-                                  parse_mode=PARSE_MODE_HTML, reply_markup=InlineKeyboardMarkup(keyboard))
+            return bot.edit_message_text(MatchConfirmationView.build_match_stats_view(match), chat_id, message_id,
+                                         parse_mode='html', reply_markup=InlineKeyboardMarkup(keyboard), timeout=5000)
 
     @staticmethod
     def on_error(bot, update, error):
@@ -181,35 +204,40 @@ class GameManager:
 
 
 class MatchConfirmationView:
+    captions = {_confirmations[0]: "[PLAY]", _confirmations[1]: "[REJECT]"}
+
     match_stats_view = """
-<b>Registration</b> for <b>{{match.date}}</b>| Total Going - <b>{{stats['total']['all']}}</b> | Voted - <b>{{stats['total']['voted']}}</b>
-<i>Squad</i>:
-<b>Going [{{stats['+']|length}}]</b>:
-{% for t in stats['+'] %}
-    <i>{{loop.index}}.{{t.name}} {% if t.with_me>0 %}(+{{t.with_me}}){% endif %}</i>
-{% endfor %}
-<b>NOT Going [{{ stats['-']|length }}]</b>:
-{% for t in stats['-'] %}
-    <i>{{loop.index}}.{{t.name}} {% if t.with_me>0 %}(+{{t.with_me}}){% endif %}</i>
+<b>{{date}}</b> | Players - <b>{{stats['total']['all']}}</b>
+{% for c in confirmations %}
+<b>{{c}}[{{stats[c]|length}}]</b>:
+{% for t in stats[c] %}  <i>{{loop.index}}.{{t.name}} {% if t.with_me>0 %}(+{{t.with_me}}){% endif %}</i>{% endfor %}
 {% endfor %}
 """
-
     _stats_template = Environment().from_string(match_stats_view)
 
     @staticmethod
     def build_match_stats_view(match):
-        return MatchConfirmationView._stats_template.render(match=match, stats=match.stats())
+        return MatchConfirmationView._stats_template.render(date=match.date, stats=match.stats(),
+                                                            confirmations=_confirmations,
+                                                            button_caption=MatchConfirmationView.captions)
 
     @staticmethod
     def pack_buttons(types):
-        return list(map(lambda t: InlineKeyboardButton(BUTTON_CAPTION.get(t, t), callback_data=f"{t}"), types))
+        return list(map(lambda t: InlineKeyboardButton(f"{t}{MatchConfirmationView.captions.get(t, '')}",
+                                                       callback_data=f"{t}"), types))
 
 
 def main():
     token = os.environ.get('TG_BOT_TOKEN', None)
     if not token:
         raise ValueError('Bot token is not specified')
-    GameManager(Updater(token)).start()
+    client = MongoClient(os.environ.get('TG_MONGO_URI', 'mongodb://127.0.0.1/tigers'))
+    if not client:
+        raise ValueError('Mongo URI is not specified')
+
+    client.tigers.confirmations.ensure_index("date", expireAfterSeconds=2 * 24 * 3600)
+
+    GameManager(Updater(token), client.tigers).start()
 
 
 if __name__ == '__main__':
