@@ -177,7 +177,7 @@ class GameManager:
         self._db.teams.insert_one(json.loads(jsonpickle.encode(team)))
 
     def update_team(self, team):
-        self._db.teams.update({'_id': team.team_id}, json.loads(jsonpickle.encode(team)))
+        self._db.teams.replace_one({'_id': team.team_id}, json.loads(jsonpickle.encode(team)))
 
     def __is_unprocessed_update(self, update):
         return self._db.confirmations.find_one({'_id': update.update_id}) is None
@@ -235,7 +235,7 @@ def main():
     if not client:
         raise ValueError('Mongo URI is not specified')
 
-    client.tigers.confirmations.ensure_index("date", expireAfterSeconds=2 * 24 * 3600)
+    client.tigers.confirmations.create_index("date", expireAfterSeconds=2 * 24 * 3600)
 
     GameManager(Updater(token), client.tigers).start()
 
