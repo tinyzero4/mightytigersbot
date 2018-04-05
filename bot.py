@@ -17,9 +17,6 @@ logger = logging.getLogger(__name__)
 
 DEFAULT_MATCH_DAYS = [1, 4]
 
-BOT_COMMAND_NEW_TEAM = 'newteam'
-BOT_COMMAND_NEXT_MATCH = 'nextmatch'
-
 
 class GameManager:
 
@@ -28,8 +25,8 @@ class GameManager:
         self.repository = data_repository
         self.telegram = telegram
 
-        telegram.dispatcher.add_handler(CommandHandler(BOT_COMMAND_NEW_TEAM, self.new_team))
-        telegram.dispatcher.add_handler(CommandHandler(BOT_COMMAND_NEXT_MATCH, self.next_match))
+        telegram.dispatcher.add_handler(CommandHandler("newteam", self.new_team))
+        telegram.dispatcher.add_handler(CommandHandler("nextmatch", self.next_match))
         telegram.dispatcher.add_handler(CallbackQueryHandler(self.on_confirmation))
         telegram.dispatcher.add_error_handler(GameManager.on_error)
 
