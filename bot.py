@@ -148,7 +148,7 @@ class Repository:
     def find_match(self, team_id, match_id):
         return self.__decode(self._db.matches.find_one({'match_id': match_id, 'team_id': team_id}))
 
-    # TODO: $set by each player confirmation
+    # TODO: Replace with $set by each player confirmation
     def save_match(self, match):
         self._db.matches.update_one(filter={'_id': match.team_id}, update=self.__encode(match), upsert=True)
 

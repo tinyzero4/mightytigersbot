@@ -69,7 +69,8 @@ class Match:
         return stats
 
     def __repr__(self):
-        return f"date:{self.date.strftime('%Y-%m-%d')}|squad:{self.squad}"
+        return f"id:{self.match_id}|team_id:{self.team_id}|completed:{self.completed}|" \
+               f"date:{self.date.strftime('%Y-%m-%d')}|squad:{self.squad}"
 
 
 class Schedule:
@@ -91,6 +92,9 @@ class Schedule:
             days_until_next_match = match_days_on_current_week[0] - now.isoweekday()
         return (now + datetime.timedelta(days=days_until_next_match)).date()
 
+    def __repr__(self):
+        return f"week_days:{self.week_days}"
+
 
 class Team:
     def __init__(self, team_id, schedule, name='MightyTigers'):
@@ -110,4 +114,4 @@ class Team:
         return latest_match, None
 
     def __repr__(self):
-        return f"name:{self.name}|teamId:{self.team_id}|schedule:{self.schedule}"
+        return f"name:{self.name}|team_id:{self.team_id}|schedule:{self.schedule}"
