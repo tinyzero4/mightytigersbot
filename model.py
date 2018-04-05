@@ -1,4 +1,4 @@
-import datetime
+from _datetime import datetime
 import logging
 
 logger = logging.getLogger(__name__)
@@ -81,7 +81,7 @@ class Schedule:
         self.week_days = weekdays
 
     def next_match_date(self):
-        now = datetime.datetime.today()
+        now = datetime.today()
         week_day = now.isoweekday()
 
         match_days_on_current_week = list(filter(lambda d: d > week_day, self.week_days))

@@ -3,7 +3,9 @@ import json
 import logging
 import os
 
+
 import jsonpickle
+from datetime import datetime
 from jinja2 import Environment
 from pymongo import MongoClient, DESCENDING, ASCENDING
 from telegram.ext import Updater, CommandHandler, CallbackQueryHandler
@@ -51,8 +53,12 @@ class GameManager:
         (next_match, last_match) = team.next_match(self.repository.find_team_latest_match(team.team_id))
         if last_match:
             self.repository.save_match(next_match)
-            self.repository.save_match(last_match.complete())
+            self.__validate_match_date(last_match)
             ViewHandler.send_match_stats(bot, team.team_id, next_match)
+
+    def __validate_match_date(self, match):
+        if match is not None and datetime.today() > match.date:
+            self.repository.save_match(match.complete())
 
     def on_confirmation(self, bot, update):
         if self.repository.is_tg_update_unprocessed(update) and update.callback_query and update.callback_query.message:
@@ -62,7 +68,10 @@ class GameManager:
             (match_id, confirmation) = ViewHandler.parse_callback_data(update.callback_query.data)
 
             match = self.repository.find_match(team_id, match_id)
-            if match is not None:
+
+            self.__validate_match_date(match)
+
+            if match is not None or match.completed:
                 player_profile = update.callback_query.from_user
                 match.confirm(player_profile.full_name, player_profile.username, confirmation)
 
