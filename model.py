@@ -1,5 +1,6 @@
-from _datetime import datetime
+import datetime
 import logging
+import uuid
 
 logger = logging.getLogger(__name__)
 
@@ -31,9 +32,9 @@ class Player:
 
 class Match:
     def __init__(self, date, team_id):
-        self._id = None
-        self.date = date
+        self._id = str(uuid.uuid4())
         self.team_id = team_id
+        self.date = date
         self.squad = {}
         self.completed = False
 
@@ -55,6 +56,9 @@ class Match:
             player.confirm(value)
         elif value in WITH_ME_CONFIRMATIONS:
             player.confirm_with_me(value)
+
+    def is_before(self, datetime_to_compare):
+        return datetime.datetime.strptime(self.date, "%Y-%m-%d").date() < datetime_to_compare.date()
 
     def stats(self):
         stats = {'total': {}}
@@ -81,7 +85,7 @@ class Schedule:
         self.week_days = weekdays
 
     def next_match_date(self):
-        now = datetime.today()
+        now = datetime.datetime.today()
         week_day = now.isoweekday()
 
         match_days_on_current_week = list(filter(lambda d: d > week_day, self.week_days))
@@ -90,7 +94,7 @@ class Schedule:
             days_until_next_match = 7 - now.isoweekday() + self.week_days[0]
         else:
             days_until_next_match = match_days_on_current_week[0] - now.isoweekday()
-        return (now + datetime.timedelta(days=days_until_next_match)).date()
+        return now + datetime.timedelta(days=days_until_next_match)
 
     def __repr__(self):
         return f"week_days:{self.week_days}"
@@ -110,8 +114,8 @@ class Team:
         next_match_date = self.schedule.next_match_date()
 
         if not latest_match or latest_match.date < next_match_date:
-            return Match(next_match_date, self.team_id), latest_match
-        return latest_match, None
+            return Match(next_match_date, self.team_id), latest_match, True
+        return latest_match, None, False
 
     def __repr__(self):
         return f"name:{self.name}|team_id:{self.team_id}|schedule:{self.schedule}"

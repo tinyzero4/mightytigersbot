@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
+import datetime
 import json
 import logging
 import os
 
-
 import jsonpickle
-from datetime import datetime
 from jinja2 import Environment
 from pymongo import MongoClient, DESCENDING, ASCENDING
 from telegram.ext import Updater, CommandHandler, CallbackQueryHandler
@@ -17,7 +16,7 @@ from model import Team, Schedule, CONFIRMATIONS, WITH_ME_CONFIRMATIONS
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-DEFAULT_MATCH_DAYS = [1, 4]
+DEFAULT_MATCH_DAYS = [1, 2, 3, 4, 5, 6]
 
 
 class GameManager:
@@ -41,7 +40,7 @@ class GameManager:
         if team is None:
             team = Team(update.message.chat_id, Schedule(os.environ.get('MATCH_DAYS', list(DEFAULT_MATCH_DAYS))),
                         update.message.chat.title)
-            self.repository.save_team(team)
+            self.repository.create_team(team)
             bot.send_message(team.team_id, "*Let's Play!*", parse_mode='Markdown')
         return team
 
@@ -50,14 +49,14 @@ class GameManager:
         if team is None:
             team = self.new_team(bot, update)
 
-        (next_match, last_match) = team.next_match(self.repository.find_team_latest_match(team.team_id))
-        if last_match:
-            self.repository.save_match(next_match)
+        (next_match, last_match, is_new) = team.next_match(self.repository.find_team_latest_match(team.team_id))
+        if is_new:
+            self.repository.create_match(next_match)
             self.__validate_match_date(last_match)
             ViewHandler.send_match_stats(bot, team.team_id, next_match)
 
     def __validate_match_date(self, match):
-        if match is not None and datetime.today() > match.date:
+        if match is not None and datetime.datetime.today().date() > match.date:
             self.repository.save_match(match.complete())
 
     def on_confirmation(self, bot, update):
@@ -71,11 +70,11 @@ class GameManager:
 
             self.__validate_match_date(match)
 
-            if match is not None or match.completed:
+            if match is not None and not match.completed:
                 player_profile = update.callback_query.from_user
                 match.confirm(player_profile.full_name, player_profile.username, confirmation)
 
-                self.repository.save_match(match)
+                self.repository.update_match(match)
                 self.repository.save_tg_update(update.update_id, message.date)
 
                 ViewHandler.send_match_stats(bot, message.chat_id, match, message.message_id)
@@ -106,7 +105,7 @@ class ViewHandler:
             ViewHandler.pack_buttons(WITH_ME_CONFIRMATIONS, [match.match_id])
         ]
         if not message_id:
-            return bot.send_message(chat_id=chat_id, message=ViewHandler.build_match_stats_view(match),
+            return bot.send_message(chat_id=chat_id, text=ViewHandler.build_match_stats_view(match),
                                     caption="caption", parse_mode='html', reply_markup=InlineKeyboardMarkup(keyboard),
                                     timeout=5000)
         else:
@@ -142,21 +141,24 @@ class Repository:
         db.confirmations.create_index("date", expireAfterSeconds=2 * 24 * 3600)
         db.matches.create_index([("team_id", ASCENDING), ("match_id", ASCENDING)])
 
-    def save_team(self, team):
+    def create_team(self, team):
         self._db.teams.insert_one(self.__encode(team))
 
     def find_team(self, team_id):
         return self.__decode(self._db.teams.find_one({'_id': team_id}))
 
     def find_team_latest_match(self, team_id):
-        return self.__decode(self._db.matches.find_one({'team_id': team_id})).sort([{'date', DESCENDING}])
+        return self.__decode(self._db.matches.find_one({'team_id': team_id}, sort=[('date', DESCENDING)]))
 
     def find_match(self, team_id, match_id):
-        return self.__decode(self._db.matches.find_one({'match_id': match_id, 'team_id': team_id}))
+        return self.__decode(self._db.matches.find_one({'_id': match_id, 'team_id': team_id}))
 
-    # TODO: Replace with $set by each player confirmation
-    def save_match(self, match):
-        self._db.matches.update_one(filter={'_id': match.team_id}, update=self.__encode(match), upsert=True)
+    def create_match(self, match):
+        self._db.matches.replace_one(filter={'_id': match.match_id}, replacement=self.__encode(match), upsert=True)
+
+    def update_match(self, match):
+        # TODO: Replace with $set for each player confirmation
+        self._db.matches.replace_one(filter={'_id': match.match_id}, replacement=self.__encode(match), upsert=True)
 
     def is_tg_update_unprocessed(self, update):
         return self._db.confirmations.find_one({'_id': update.update_id}) is None
