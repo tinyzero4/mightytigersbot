@@ -79,25 +79,33 @@ class Match:
 
 class Schedule:
 
-    def __init__(self, weekdays):
-        if not weekdays:
+    def __init__(self, time_table):
+        """Weekly scheduling."""
+        if not time_table:
             raise ValueError(f"At least one day on week should be marked as match day")
-        self.week_days = weekdays
+        self.time_table = time_table
 
     def next_match_date(self):
         now = datetime.datetime.today()
         week_day = now.isoweekday()
 
-        match_days_on_current_week = list(filter(lambda d: d > week_day, self.week_days))
+        match_days_on_current_week = list(filter(lambda (day, time): int(day) > week_day, self.time_table))
 
         if not match_days_on_current_week:
-            days_until_next_match = 7 - now.isoweekday() + self.week_days[0]
+            days_until_next_match = 7 - now.isoweekday() + self.time_table[0]
         else:
             days_until_next_match = match_days_on_current_week[0] - now.isoweekday()
         return now + datetime.timedelta(days=days_until_next_match)
 
+    @staticmethod
+    def parse_schedule(value):
+        if value is None:
+            return None
+
+        return Schedule(list(map(lambda d: d.split(";"), [d for d in value.split("|")])))
+
     def __repr__(self):
-        return f"week_days:{self.week_days}"
+        return f"week_days:{self.time_table}"
 
 
 class Team:
@@ -119,3 +127,7 @@ class Team:
 
     def __repr__(self):
         return f"name:{self.name}|team_id:{self.team_id}|schedule:{self.schedule}"
+
+
+def star(f):
+  return lambda args: f(*args)
