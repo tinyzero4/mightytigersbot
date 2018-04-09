@@ -1,6 +1,7 @@
 import datetime
 import logging
 import uuid
+from functools import partial
 
 logger = logging.getLogger(__name__)
 
@@ -58,7 +59,7 @@ class Match:
             player.confirm_with_me(value)
 
     def is_before(self, datetime_to_compare):
-        return datetime.datetime.strptime(self.date, "%Y-%m-%d").date() < datetime_to_compare.date()
+        return self.date < datetime_to_compare.date()
 
     def stats(self):
         stats = {'total': {}}
@@ -79,23 +80,41 @@ class Match:
 
 class Schedule:
 
-    def __init__(self, time_table):
+    def __init__(self, match_days):
         """Weekly scheduling."""
-        if not time_table:
+        if not match_days:
             raise ValueError(f"At least one day on week should be marked as match day")
-        self.time_table = time_table
+        self.match_days = sorted(match_days, key=lambda d: d[0])
 
     def next_match_date(self):
         now = datetime.datetime.today()
-        week_day = now.isoweekday()
 
-        match_days_on_current_week = list(filter(lambda (day, time): int(day) > week_day, self.time_table))
+        is_after_now = partial(self.__is_next_on_this_week, now)
 
-        if not match_days_on_current_week:
-            days_until_next_match = 7 - now.isoweekday() + self.time_table[0]
+        match_days_on_this_week = list(filter(lambda day: is_after_now(day), map(self.__day_to_tuple, self.match_days)))
+
+        if not match_days_on_this_week:
+            (week_day, hour, minute) = self.__day_to_tuple(self.match_days[0])
+            day_until_match = 7 - now.isoweekday() + int(week_day)
+            return (now + datetime.timedelta(days=day_until_match)).replace(hour=int(hour), minute=int(minute),
+                                                                            second=0, microsecond=0)
         else:
-            days_until_next_match = match_days_on_current_week[0] - now.isoweekday()
-        return now + datetime.timedelta(days=days_until_next_match)
+            (week_day, hour, minute) = match_days_on_this_week[0]
+            day_until_match = int(week_day) - now.isoweekday()
+            return (now + datetime.timedelta(days=day_until_match)).replace(hour=int(hour), minute=int(minute),
+                                                                            second=0, microsecond=0)
+
+    @staticmethod
+    def __is_next_on_this_week(now, match_day):
+        (match_day_weekday, match_day_hour, match_day_minute) = match_day
+        return int(match_day_weekday) > now.isoweekday() or now.replace(hour=int(match_day_hour),
+                                                                        minute=int(match_day_minute),
+                                                                        second=0, microsecond=0) > now
+
+    @staticmethod
+    def __day_to_tuple(match_day):
+        (hour, minute) = match_day[1].split(":")
+        return match_day[0], hour, minute
 
     @staticmethod
     def parse_schedule(value):
@@ -105,7 +124,7 @@ class Schedule:
         return Schedule(list(map(lambda d: d.split(";"), [d for d in value.split("|")])))
 
     def __repr__(self):
-        return f"week_days:{self.time_table}"
+        return f"week_days:{self.match_days}"
 
 
 class Team:
@@ -121,13 +140,9 @@ class Team:
     def next_match(self, latest_match):
         next_match_date = self.schedule.next_match_date()
 
-        if not latest_match or latest_match.date < next_match_date:
+        if not latest_match or latest_match.is_before(next_match_date):
             return Match(next_match_date, self.team_id), latest_match, True
         return latest_match, None, False
 
     def __repr__(self):
         return f"name:{self.name}|team_id:{self.team_id}|schedule:{self.schedule}"
-
-
-def star(f):
-  return lambda args: f(*args)

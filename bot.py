@@ -6,8 +6,8 @@ import os
 
 import jsonpickle
 from jinja2 import Environment
-from pymongo import DESCENDING, ASCENDING
-from telegram.ext import CommandHandler, CallbackQueryHandler
+from pymongo import MongoClient, DESCENDING, ASCENDING
+from telegram.ext import Updater, CommandHandler, CallbackQueryHandler
 from telegram.inline.inlinekeyboardbutton import InlineKeyboardButton
 from telegram.inline.inlinekeyboardmarkup import InlineKeyboardMarkup
 
@@ -21,10 +21,11 @@ DEFAULT_MATCH_DAYS = [("1", "09:00"), ("2", "09:00"), ("3", "09:00"), ("4", "09:
 
 class GameManager:
 
-    def __init__(self, telegram, data_repository):
+    def __init__(self, telegram, data_repository, web_hook_url):
         self.view = ViewHandler()
         self.repository = data_repository
         self.telegram = telegram
+        self.web_hook_url = web_hook_url
 
         telegram.dispatcher.add_handler(CommandHandler("newteam", self.new_team))
         telegram.dispatcher.add_handler(CommandHandler("nextmatch", self.next_match))
@@ -32,7 +33,8 @@ class GameManager:
         telegram.dispatcher.add_error_handler(GameManager.on_error)
 
     def start(self):
-        self.telegram.start_polling(poll_interval=1, timeout=30)
+        # self.telegram.start_polling(poll_interval=1, timeout=30)
+        self.telegram.start_webhook(webhook_url=self.web_hook_url)
         self.telegram.idle()
 
     def new_team(self, bot, update):
@@ -56,7 +58,7 @@ class GameManager:
             ViewHandler.send_match_stats(bot, team.team_id, next_match)
 
     def __validate_match_date(self, match):
-        if match is not None and datetime.datetime.today().date() > match.date:
+        if match is not None and datetime.datetime.today() > match.date:
             self.repository.save_match(match.complete())
 
     def on_confirmation(self, bot, update):
@@ -176,15 +178,17 @@ class Repository:
 
 
 def main():
-    # token = os.environ.get('TG_BOT_TOKEN')
-    # if not token:
-    #     raise ValueError('Telegram Bot token is not specified')
-    # client = MongoClient(os.environ.get('TG_MONGO_URI', 'mongodb://127.0.0.1/tigers'))
-    # if not client:
-    #     raise ValueError('Mongo URI is not specified')
-    #
-    # GameManager(Updater(token), Repository(client.tigers)).start()
-    print(Schedule.parse_schedule("1;09:00|4;09:00"))
+    token = os.environ.get('TG_BOT_TOKEN')
+    if not token:
+        raise ValueError('Telegram Bot token is not specified')
+    client = MongoClient(os.environ.get('TG_MONGO_URI', 'mongodb://127.0.0.1/tigers'))
+    if not client:
+        raise ValueError('Mongo URI is not specified')
+    webhook_host = os.environ.get('WEBHOOK_HOST')
+    if not webhook_host:
+        raise ValueError('Webhook URI is not specified')
+
+    GameManager(Updater(token), Repository(client.tigers), f"http://{webhook_host}:80/mightytigers").start()
 
 
 if __name__ == '__main__':
