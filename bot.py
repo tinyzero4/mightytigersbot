@@ -60,7 +60,7 @@ class GameManager:
 
     def __validate_match_date(self, match):
         if match is not None and datetime.datetime.today() > match.date:
-            self.repository.save_match(match.complete())
+            self.repository.update_match(match.complete())
 
     def on_confirmation(self, bot, update):
         if self.repository.is_tg_update_unprocessed(update) and update.callback_query and update.callback_query.message:
