@@ -52,6 +52,7 @@ class GameManager:
             team = self.new_team(bot, update)
 
         (next_match, last_match, is_new) = team.next_match(self.repository.find_team_latest_match(team.team_id))
+        logger.info(f"next:{next_match}|last:{last_match}")
         if is_new:
             self.repository.create_match(next_match)
             self.__validate_match_date(last_match)
