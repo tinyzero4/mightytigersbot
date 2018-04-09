@@ -75,7 +75,7 @@ class Match:
 
     def __repr__(self):
         return f"id:{self.match_id}|team_id:{self.team_id}|completed:{self.completed}|" \
-               f"date:{self.date.strftime('%Y-%m-%d')}|squad:{self.squad}"
+               f"date:{self.date.strftime('%Y-%m-%d %H:%M%s')}|squad:{self.squad}"
 
 
 class Schedule:
