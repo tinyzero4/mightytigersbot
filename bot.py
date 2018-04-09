@@ -16,7 +16,7 @@ from model import Team, Schedule, CONFIRMATIONS, WITH_ME_CONFIRMATIONS
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-DEFAULT_MATCH_DAYS = [("1", "08:00"), ("4", "08:00")]
+DEFAULT_MATCH_DAYS = [("1", "05:00"), ("4", "05:00")]
 
 
 class GameManager:
