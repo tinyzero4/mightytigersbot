@@ -16,7 +16,7 @@ from model import Team, Schedule, CONFIRMATIONS, WITH_ME_CONFIRMATIONS
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-DEFAULT_MATCH_DAYS = [("1", "09:00"), ("2", "09:00"), ("3", "09:00"), ("4", "09:00"), ("5", "09:00"), ("6", "09:00")]
+DEFAULT_MATCH_DAYS = [("1", "08:00"), ("4", "08:00")]
 
 
 class GameManager:
@@ -188,7 +188,7 @@ def main():
     if not webhook_host:
         raise ValueError('Webhook URI is not specified')
 
-    GameManager(Updater(token), Repository(client.tigers), f"http://{webhook_host}:80/mightytigers").start()
+    GameManager(Updater(token), Repository(client.tigers), f"http://{webhook_host}:8080/mightytigers").start()
 
 
 if __name__ == '__main__':
