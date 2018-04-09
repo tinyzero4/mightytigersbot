@@ -59,7 +59,7 @@ class Match:
             player.confirm_with_me(value)
 
     def is_before(self, datetime_to_compare):
-        return self.date < datetime_to_compare.date()
+        return self.date < datetime_to_compare
 
     def stats(self):
         stats = {'total': {}}
