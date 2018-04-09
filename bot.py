@@ -34,7 +34,7 @@ class GameManager:
 
     def start(self):
         # self.telegram.start_polling(poll_interval=1, timeout=30)
-        self.telegram.start_webhook(webhook_url=self.web_hook_url)
+        self.telegram.start_webhook(port=8080, webhook_url=self.web_hook_url)
         self.telegram.idle()
 
     def new_team(self, bot, update):
