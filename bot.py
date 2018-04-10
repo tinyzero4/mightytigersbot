@@ -3,7 +3,6 @@ import datetime
 import json
 import logging
 import os
-import uuid
 
 import jsonpickle
 from dateutil import tz
@@ -37,7 +36,12 @@ class GameManager:
 
     def start(self):
         # self.telegram.start_polling(poll_interval=1, timeout=30)
-        self.telegram.start_webhook(listen='0.0.0.0', port=8080, webhook_url=self.web_hook_url)
+        self.telegram.start_webhook(listen='0.0.0.0',
+                                    port=8443,
+                                    url_path='mightytigers',
+                                    key='tigers.key',
+                                    cert='tigers.pem',
+                                    webhook_url=f"{self.web_hook_url}/mightytigers")
         # self.telegram.idle()
 
     def new_team(self, bot, update):
@@ -193,7 +197,7 @@ def main():
     if not webhook_host:
         raise ValueError('Webhook URI is not specified')
 
-    GameManager(Updater(token), Repository(client.tigers), f"http://{webhook_host}:8080/mightytigers").start()
+    GameManager(Updater(token), Repository(client.tigers), f"https://{webhook_host}:8443").start()
 
 
 if __name__ == '__main__':
