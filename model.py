@@ -107,9 +107,14 @@ class Schedule:
     @staticmethod
     def __is_next_on_this_week(now, match_day):
         (match_day_weekday, match_day_hour, match_day_minute) = match_day
-        return int(match_day_weekday) > now.isoweekday() or now.replace(hour=int(match_day_hour),
+        if int(match_day_weekday) > now.isoweekday():
+            return True
+        elif int(match_day_weekday) == now.isoweekday() and now.replace(hour=int(match_day_hour),
                                                                         minute=int(match_day_minute),
-                                                                        second=0, microsecond=0) > now
+                                                                        second=0, microsecond=0) > now:
+            return True
+
+        return False
 
     @staticmethod
     def __day_to_tuple(match_day):
