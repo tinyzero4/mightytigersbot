@@ -87,7 +87,7 @@ class Schedule:
         self.match_days = sorted(match_days, key=lambda d: d[0])
 
     def next_match_date(self):
-        now = datetime.datetime.today()
+        now = datetime.datetime.utcnow()
 
         is_after_now = partial(self.__is_next_on_this_week, now)
 

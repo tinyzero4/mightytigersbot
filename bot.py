@@ -3,8 +3,10 @@ import datetime
 import json
 import logging
 import os
+import uuid
 
 import jsonpickle
+from dateutil import tz
 from jinja2 import Environment
 from pymongo import MongoClient, DESCENDING, ASCENDING
 from telegram.ext import Updater, CommandHandler, CallbackQueryHandler
@@ -16,6 +18,7 @@ from model import Team, Schedule, CONFIRMATIONS, WITH_ME_CONFIRMATIONS
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# Time in UTC
 DEFAULT_MATCH_DAYS = [("1", "05:00"), ("4", "05:00")]
 
 
@@ -34,7 +37,7 @@ class GameManager:
 
     def start(self):
         self.telegram.start_polling(poll_interval=1, timeout=30)
-        self.telegram.start_webhook(port=8080, webhook_url=self.web_hook_url)
+        # self.telegram.start_webhook(port=8080, webhook_url=self.web_hook_url)
         self.telegram.idle()
 
     def new_team(self, bot, update):
@@ -59,7 +62,7 @@ class GameManager:
             ViewHandler.send_match_stats(bot, team.team_id, next_match)
 
     def __validate_match_date(self, match):
-        if match is not None and datetime.datetime.today() > match.date:
+        if match is not None and datetime.datetime.utcnow() > match.date:
             self.repository.update_match(match.complete())
 
     def on_confirmation(self, bot, update):
@@ -118,7 +121,9 @@ class ViewHandler:
 
     @staticmethod
     def build_match_stats_view(match):
-        return ViewHandler._stats_template.render(date=match.date, stats=match.stats(),
+        match_date = match.date.replace(tzinfo=tz.tzutc()).astimezone(tz.gettz('Belarus/Minsk'))
+
+        return ViewHandler._stats_template.render(date=match_date.strftime('%Y-%m-%d %H:%M'), stats=match.stats(),
                                                   confirmations=CONFIRMATIONS,
                                                   button_caption=ViewHandler.captions)
 
@@ -160,7 +165,6 @@ class Repository:
         self._db.matches.replace_one(filter={'_id': match.match_id}, replacement=self.__encode(match), upsert=True)
 
     def update_match(self, match):
-        # TODO: Replace with $set for each player confirmation
         self._db.matches.replace_one(filter={'_id': match.match_id}, replacement=self.__encode(match), upsert=True)
 
     def is_tg_update_unprocessed(self, update):
@@ -186,8 +190,8 @@ def main():
     if not client:
         raise ValueError('Mongo URI is not specified')
     webhook_host = os.environ.get('WEBHOOK_HOST')
-    if not webhook_host:
-        raise ValueError('Webhook URI is not specified')
+    # if not webhook_host:
+    #     raise ValueError('Webhook URI is not specified')
 
     GameManager(Updater(token), Repository(client.tigers), f"http://{webhook_host}:8080/mightytigers").start()
 
