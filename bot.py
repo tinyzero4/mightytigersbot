@@ -19,7 +19,7 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 logger = logging.getLogger(__name__)
 
 # Time in UTC
-DEFAULT_MATCH_DAYS = [("1", "05:00"), ("4", "05:00")]
+DEFAULT_MATCH_DAYS = [("1", "05:00"), ("2", "05:00"), ("3", "05:00"), ("4", "05:00")]
 
 
 class GameManager:
@@ -36,9 +36,9 @@ class GameManager:
         telegram.dispatcher.add_error_handler(GameManager.on_error)
 
     def start(self):
-        self.telegram.start_polling(poll_interval=1, timeout=30)
-        # self.telegram.start_webhook(port=8080, webhook_url=self.web_hook_url)
-        self.telegram.idle()
+        # self.telegram.start_polling(poll_interval=1, timeout=30)
+        self.telegram.start_webhook(port=8080, webhook_url=self.web_hook_url)
+        # self.telegram.idle()
 
     def new_team(self, bot, update):
         team = self.repository.find_team(update.message.chat_id)
@@ -190,8 +190,8 @@ def main():
     if not client:
         raise ValueError('Mongo URI is not specified')
     webhook_host = os.environ.get('WEBHOOK_HOST')
-    # if not webhook_host:
-    #     raise ValueError('Webhook URI is not specified')
+    if not webhook_host:
+        raise ValueError('Webhook URI is not specified')
 
     GameManager(Updater(token), Repository(client.tigers), f"http://{webhook_host}:8080/mightytigers").start()
 
