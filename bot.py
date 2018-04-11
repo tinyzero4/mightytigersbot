@@ -100,7 +100,7 @@ class ViewHandler:
     captions = {CONFIRMATIONS[0]: "[PLAY]", CONFIRMATIONS[1]: "[REJECT]"}
 
     match_stats_view = """
-| <b>{{date}}</b> | Players - <b>{{stats['total']['all']}}</b> |
+|<b>{{date}}</b>|Players:<b>{{stats['total']['all']}}</b>|
 {% for c in confirmations %}
 <b>{{c}}[{{stats[c]|length}}]</b>:
 {% for t in stats[c] %}  <i>{{loop.index}}.{{t.name}} {% if t.with_me>0 %}(+{{t.with_me}}){% endif %}</i>{% endfor %}
@@ -127,7 +127,7 @@ class ViewHandler:
     def build_match_stats_view(match):
         match_date = match.date.replace(tzinfo=tz.tzutc()).astimezone(tz.gettz('Belarus/Minsk'))
 
-        return ViewHandler._stats_template.render(date=match_date.strftime('%Y-%m-%d %H:%M'), stats=match.stats(),
+        return ViewHandler._stats_template.render(date=match_date.strftime('%Y-%m-%d@%H:%M'), stats=match.stats(),
                                                   confirmations=CONFIRMATIONS,
                                                   button_caption=ViewHandler.captions)
 
