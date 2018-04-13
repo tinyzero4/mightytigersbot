@@ -3,6 +3,7 @@ import datetime
 import json
 import logging
 import os
+import time
 
 import jsonpickle
 from dateutil import tz
@@ -35,13 +36,13 @@ class GameManager:
         telegram.dispatcher.add_error_handler(GameManager.on_error)
 
     def start(self):
-        # self.telegram.start_polling(poll_interval=1, timeout=30)
         self.telegram.start_webhook(listen='0.0.0.0',
                                     port=8443,
                                     url_path='mightytigers',
                                     key='tigers.key',
                                     cert='tigers.pem',
                                     webhook_url=f"{self.web_hook_url}/mightytigers")
+        # self.telegram.start_polling(poll_interval=1, timeout=30)
         # self.telegram.idle()
 
     def new_team(self, bot, update):
@@ -70,24 +71,24 @@ class GameManager:
             self.repository.update_match(match.complete())
 
     def on_confirmation(self, bot, update):
-        if self.repository.is_tg_update_unprocessed(update) and update.callback_query and update.callback_query.message:
+        if update.callback_query and update.callback_query.message:
             message = update.callback_query.message
 
-            team_id = message.chat_id
-            (match_id, confirmation) = ViewHandler.parse_callback_data(update.callback_query.data)
+            (match_id, u_id, confirmation) = ViewHandler.parse_callback_data(update.callback_query.data)
+            player_profile = update.callback_query.from_user
+            update_id = player_profile.username + match_id + u_id
 
-            match = self.repository.find_match(team_id, match_id)
+            if self.repository.is_tg_update_unprocessed(update_id):
+                match = self.repository.find_match(message.chat_id, match_id)
 
-            self.__validate_match_date(match)
+                self.__validate_match_date(match)
 
-            if match is not None and not match.completed:
-                player_profile = update.callback_query.from_user
-                match.confirm(player_profile.full_name, player_profile.username, confirmation)
+                if match is not None and not match.completed:
+                    match.confirm(player_profile.full_name, player_profile.username, confirmation)
 
-                self.repository.update_match(match)
-                self.repository.save_tg_update(update.update_id, message.date)
-
-                ViewHandler.send_match_stats(bot, message.chat_id, match, message.message_id)
+                    ViewHandler.send_match_stats(bot, message.chat_id, match, message.message_id)
+                    self.repository.update_match(match)
+                    self.repository.save_tg_update(update_id, message.date)
         else:
             logger.warning(f"Unknown response type: {update}")
 
@@ -97,10 +98,10 @@ class GameManager:
 
 
 class ViewHandler:
-    captions = {CONFIRMATIONS[0]: "[PLAY]", CONFIRMATIONS[1]: "[REJECT]"}
+    captions = {CONFIRMATIONS[0]: "[PLAY]", CONFIRMATIONS[1]: "[SLEEP]", CONFIRMATIONS[2]: "[?]"}
 
     match_stats_view = """
-| <b>{{date}}</b> | Players - <b>{{stats['total']['all']}}</b> |
+|<b>{{date}}</b>|Players - <b>{{stats['total']['all']}}</b>|
 {% for c in confirmations %}
 <b>{{c}}[{{stats[c]|length}}]</b>:
 {% for t in stats[c] %}  <i>{{loop.index}}.{{t.name}} {% if t.with_me>0 %}(+{{t.with_me}}){% endif %}</i>{% endfor %}
@@ -110,24 +111,28 @@ class ViewHandler:
 
     @staticmethod
     def send_match_stats(bot, chat_id, match, message_id=None):
+        update_id = str(time.time())
         keyboard = [
-            ViewHandler.pack_buttons(CONFIRMATIONS, [match.match_id]),
-            ViewHandler.pack_buttons(WITH_ME_CONFIRMATIONS, [match.match_id])
+            ViewHandler.pack_buttons(CONFIRMATIONS, [match.match_id, update_id]),
+            ViewHandler.pack_buttons(WITH_ME_CONFIRMATIONS, [match.match_id, update_id])
         ]
         if not message_id:
-            return bot.send_message(chat_id=chat_id, text=ViewHandler.build_match_stats_view(match),
-                                    caption="caption", parse_mode='html', reply_markup=InlineKeyboardMarkup(keyboard),
-                                    timeout=5000)
+            message = bot.send_message(chat_id=chat_id, text=ViewHandler.build_match_stats_view(match),
+                                       caption="caption", parse_mode='html',
+                                       reply_markup=InlineKeyboardMarkup(keyboard))
+            bot.pin_chat_message(chat_id=chat_id, message_id=message.message_id)
+
         else:
             return bot.edit_message_text(chat_id=chat_id, text=ViewHandler.build_match_stats_view(match),
                                          message_id=message_id, parse_mode='html',
-                                         reply_markup=InlineKeyboardMarkup(keyboard), timeout=5000)
+                                         reply_markup=InlineKeyboardMarkup(keyboard))
 
     @staticmethod
     def build_match_stats_view(match):
         match_date = match.date.replace(tzinfo=tz.tzutc()).astimezone(tz.gettz('Belarus/Minsk'))
 
-        return ViewHandler._stats_template.render(date=match_date.strftime('%Y-%m-%d %H:%M'), stats=match.stats(),
+        return ViewHandler._stats_template.render(date=match_date.strftime('%Y-%m-%d %H:%M'),
+                                                  stats=match.stats(),
                                                   confirmations=CONFIRMATIONS,
                                                   button_caption=ViewHandler.captions)
 
@@ -171,8 +176,8 @@ class Repository:
     def update_match(self, match):
         self._db.matches.replace_one(filter={'_id': match.match_id}, replacement=self.__encode(match), upsert=True)
 
-    def is_tg_update_unprocessed(self, update):
-        return self._db.confirmations.find_one({'_id': update.update_id}) is None
+    def is_tg_update_unprocessed(self, update_id):
+        return self._db.confirmations.find_one({'_id': update_id}) is None
 
     def save_tg_update(self, update_id, date):
         self._db.confirmations.insert_one({'_id': update_id, 'date': date})
@@ -193,9 +198,9 @@ def main():
     client = MongoClient(os.environ.get('TG_MONGO_URI', 'mongodb://127.0.0.1/tigers'))
     if not client:
         raise ValueError('Mongo URI is not specified')
-    webhook_host = os.environ.get('WEBHOOK_HOST')
-    if not webhook_host:
-        raise ValueError('Webhook URI is not specified')
+    webhook_host = os.environ.get('WEBHOOK_HOST', '')
+    # if not webhook_host:
+    #     raise ValueError('Webhook URI is not specified')
 
     GameManager(Updater(token), Repository(client.tigers), f"https://{webhook_host}:8443").start()
 
