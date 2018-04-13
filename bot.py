@@ -129,8 +129,8 @@ class ViewHandler:
 
     @staticmethod
     def build_match_stats_view(match):
-        match_date = match.date.replace(tzinfo=tz.tzutc()).astimezone(tz.gettz('Belarus/Minsk'))
-        return ViewHandler._stats_template.render(date=match_date.strftime('%Y-%m-%d@%H:%M'), stats=match.stats(),
+        match_date = match.date.replace(tzinfo=tz.tzutc()).astimezone(tz.gettz('UTC+3'))
+        return ViewHandler._stats_template.render(date=match_date.strftime('%Y-%m-%d %H:%M'), stats=match.stats(),
                                                   confirmations=CONFIRMATIONS,
                                                   button_caption=ViewHandler.captions)
 
@@ -197,8 +197,8 @@ def main():
     if not client:
         raise ValueError('Mongo URI is not specified')
     webhook_host = os.environ.get('WEBHOOK_HOST', '')
-    # if not webhook_host:
-    #     raise ValueError('Webhook URI is not specified')
+    if not webhook_host:
+        raise ValueError('Webhook URI is not specified')
 
     GameManager(Updater(token), Repository(client.tigers), f"https://{webhook_host}:8443").start()
 
