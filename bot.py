@@ -101,10 +101,9 @@ class ViewHandler:
     captions = {CONFIRMATIONS[0]: "[PLAY]", CONFIRMATIONS[1]: "[SLEEP]", CONFIRMATIONS[2]: "[?]"}
 
     match_stats_view = """
-| <b>{{date}}</b> | Players: <b>{{stats['total']['all']}}</b> |
+|<b>{{date}}</b>| Players: <strong>{{stats['total']['all']}}</strong> |
 {% for c in confirmations %}
-<b>{{c}}[{{stats[c]|length}}]</b>:
-{% for t in stats[c] %}<i>{{loop.index}}.{{t.name}} {% if t.with_me>0 %}(+{{t.with_me}}){% endif %}</i>
+<b>{{c}}[{{stats[c]|length}}]</b>:{% for t in stats[c] %}<i>{{loop.index}}.{{t.name}} {% if t.with_me>0 %}(+{{t.with_me}}){% endif %}</i> \n
 {% endfor %}
 {% endfor %}
 """
