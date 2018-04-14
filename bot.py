@@ -104,8 +104,7 @@ class ViewHandler:
 | <b>{{date}}</b> | Players: <b>{{stats['total']['all']}}</b> |
 {% for c in confirmations %}
 <b>{{c}}[{{stats[c]|length}}]</b>:
-{% for t in stats[c] %}
-    <i>{{loop.index}}.{{t.name}} {% if t.with_me>0 %}(+{{t.with_me}}){% endif %}</i>
+{% for t in stats[c] %}<i>{{loop.index}}.{{t.name}} {% if t.with_me>0 %}(+{{t.with_me}}){% endif %}</i>
 {% endfor %}
 {% endfor %}
 """
