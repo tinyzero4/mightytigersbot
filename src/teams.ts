@@ -1,25 +1,31 @@
 import { Collection, Db, MongoClient, ObjectID } from "mongodb";
+import { DB_NAME } from "./config";
 
-const { uri, db, teamsCollection } = require("./config");
+export const TEAMS_COLLECTION = "teams";
 
-let coll: any;
-
-module.exports = () => MongoClient.connect(uri).then((c: MongoClient) => coll = c.db(db).collection(teamsCollection));
-
-interface Team {
+export interface Team {
     name: string;
     chat_id: string;
-    
+    created: Date;
 }
 
-module.exports.Team = {
-    find(_id: string) {
-        return coll.findOne({ _id: new ObjectID(_id) });
-    },
-    create(data: Team) {
-        return coll.insertOne(Object.assign(data, { created: new Date() }), { w: 1 });
-    },
-    delete(_id: string) {
-        return coll.deleteOne({ _id: new ObjectID(_id) }, { w: 1 });
+export class TeamManager {
+
+    private collection: Collection;
+
+    constructor(private db: Db) {
+        this.collection = db.collection(TEAMS_COLLECTION);
     }
-};
+
+    find(_id: string) {
+        return this.collection.findOne({ _id: new ObjectID(_id) });
+    }
+
+    create(data: Team) {
+        return this.collection.insertOne(Object.assign(data, { created: new Date() }), { w: 1 });
+    }
+
+    delete(_id: string) {
+        return this.collection.deleteOne({ _id: new ObjectID(_id) }, { w: 1 });
+    }
+}
