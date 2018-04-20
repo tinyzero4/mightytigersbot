@@ -1,16 +1,16 @@
-const Telegraf = require('telegraf')
-const teams = require('./teams') 
+import Telegraf from "telegraf"
+import { BOT_TOKEN } from "./config"
+import { client } from "./db-client"
+import { TeamManager } from "./teams"
 
-let token = "588400254:AAHRYluiI7th2eIK4VdskgP_VegSljGqeVk"
-const bot = new Telegraf(token)
+const bot = new Telegraf(BOT_TOKEN)
+const db = client.connect()
 
 bot.command('/newteam', ctx => {
-    teams().then(() => {
-        git.Team.create({name: ctx.chat.title, chat_id: ctx.chat.id}).then(t => console.log(t))
-        ctx.reply('👍')
+    db.then(db => {
+        ctx.reply(`👍 ${db.databaseName} ${ctx.chat.title} ${ctx.chat.id}`);
+        console.log(db.databaseName);
     })
 });
-
-bot.use(ctx => console.log(ctx.message))
-bot.catch(err => console.log('Ooops', err))
+bot.use(ctx => console.log(`Context ${ctx.message}`))
 bot.startPolling()
