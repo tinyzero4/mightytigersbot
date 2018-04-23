@@ -1,14 +1,14 @@
 import { ObjectId } from "bson";
 
-interface MatchDay {
+export interface MatchDay {
     day: number;
     time: string;
 }
 
 export interface Team {
-    _id : ObjectId
+    _id: ObjectId;
     name: string;
-    chat_id: string;
+    team_id: number;
     created: Date;
     schedule: Array<MatchDay>;
 }
