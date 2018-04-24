@@ -2,6 +2,7 @@ import { Collection, Db, ObjectID, ObjectId, InsertOneWriteOpResult } from "mong
 import { Match } from "../model/match";
 import { Team } from "../model/team";
 import { ScheduleService } from "./schedule-service";
+import moment from "moment";
 
 const MATCHES_COLLECTION = "matches";
 
@@ -38,7 +39,9 @@ export class MatchService {
     }
 
     matchStats(match: Match): any {
-        return {};
+        return {
+            date: moment.utc(match.date).format("ddd,MMM.DD@HH:mm")
+        };
     }
 
     applyConfirmation(): void {

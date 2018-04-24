@@ -18,24 +18,25 @@ db.then(db => {
             .then(team => chatService.sendTeamGreeting(reply))
             .catch(err => console.error(`[bot] issue while new team creation ${err}`))
     });
-    bot.command('/nextmatch', ({ reply, chat }) => {
+    bot.command('/nextmatch', ({ reply, replyWithHTML, chat }) => {
         teamService.findByTeamId(chat.id)
             .then(team => {
                 if (!team) chatService.sendTeamNotRegistered(reply);
                 else teamService.nextMatch(chat.id)
                     .then(([match, created]) => {
-                        console.log(`
-                            Match   : ${JSON.stringify(match)}
-                            Created : ${created}
-                        `)
-                        if (match && created) chatService.sendMatchVoteMessage(matchService.matchStats(match))
+                        if (match && created) chatService.sendMatchVoteMessage(replyWithHTML, matchService.matchStats(match))
                     }).catch(err => {
                         console.error(err)
                         chatService.sendOperationFailed(reply)
                     })
             })
     })
-    bot.use(ctx => console.log(`Context ${ctx.message}`))
+    bot.on('callback_query', (ctx) => {
+        console.log(ctx.callbackQuery);
+      })
+    bot.use(ctx => {
+        console.log(`Context ${ctx.callbackQuery}`)
+    })
     bot.startPolling()
 }).catch(err => {
     console.error(`[bot] startup error ${err}`)
