@@ -1,5 +1,6 @@
 const Telegraf = require("telegraf")
 const Mustache = require("mustache")
+import {CONFIRMATIONS, CONFIRMATIONS_WITH_ME} from "../config" 
 
 const Extra = Telegraf.Extra
 const Markup = Telegraf.Markup
@@ -23,13 +24,17 @@ export class ChatService {
         reply("*Please register team!*", markdown)
     }
 
-    sendMatchVoteMessage(reply, matchStats) {
+    sendMatchVoteMessage(reply, matchData) {
+        const buttonData = {
+            id: matchData.id,
+            uid: matchData.uid
+        }
         reply(
-            Mustache.render(voteTemplate, matchStats), 
+            Mustache.render(voteTemplate, matchData), 
             Extra.markup(Markup.inlineKeyboard([
-                [Markup.callbackButton('Yes', JSON.stringify({a:1}))]
+                CONFIRMATIONS.map(b => Markup.callbackButton(b.btn, JSON.stringify(Object.assign({}, buttonData, {c:b.v})))),
+                CONFIRMATIONS_WITH_ME.map(b => Markup.callbackButton(b, JSON.stringify(Object.assign({}, buttonData, {wm:b})))),
             ]))
         )
     }
-
 }

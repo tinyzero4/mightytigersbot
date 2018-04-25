@@ -8,11 +8,15 @@ interface Player {
     withMe: number;
 }
 
+interface Squad {
+    [propName: string]: Player;
+}
+
 export interface Match {
     _id?: ObjectId;
     team_id: number;
     createdAt: Date;
     date: Date;
-    squad?: Array<Player>;
+    squad?: Squad;
     completed?: boolean;
 }
