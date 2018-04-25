@@ -4,7 +4,7 @@ interface Player {
     id: string;
     name: string;
     confirmation: string;
-    confirmationAt: Date;
+    confirmationDate: Date;
     withMe: number;
 }
 
