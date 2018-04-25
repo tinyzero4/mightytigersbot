@@ -29,13 +29,13 @@ export class ChatService {
             id: matchData.id,
             uid: matchData.uid
         }
-        reply(
+        return reply(
             Mustache.render(voteTemplate, matchData), 
             Extra.markup(Markup.inlineKeyboard([
                 CONFIRMATIONS.map(b => Markup.callbackButton(b.btn, JSON.stringify(Object.assign({}, buttonData, {c:b.v})))),
                 CONFIRMATIONS_WITH_ME.map(b => Markup.callbackButton(b, JSON.stringify(Object.assign({}, buttonData, {wm:b})))),
             ]))
-        )
+        );
     }
 
     updateMatchVoteMessage()

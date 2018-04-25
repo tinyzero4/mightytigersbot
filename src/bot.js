@@ -18,15 +18,20 @@ db.then(db => {
             .then(team => chatService.sendTeamGreeting(reply))
             .catch(err => console.error(`[bot] issue while new team creation ${err}`))
     });
-    bot.command('/nextmatch', ({ reply, replyWithHTML, chat }) => {
+    bot.command('/nextmatch', ({ reply, replyWithHTML, pinChatMessage, chat }) => {
         teamService.findByTeamId(chat.id)
             .then(team => {
                 if (!team) chatService.sendTeamNotRegistered(reply);
-                else teamService.nextMatch(chat.id)
+                else
+                    teamService.nextMatch(chat.id)
                     .then(([match, created]) => {
                         if (match && created) chatService.sendMatchVoteMessage(replyWithHTML, matchService.matchStats(match))
+                                .then(data => {
+                                    matchService.setMatchMessage(match._id, data.message_id)
+                                    pinChatMessage(data.message_id)
+                                })
                     }).catch(err => {
-                        console.error(err)
+                        console.error(`[bot] error scheduling next match. Reason: ${err}`)
                         chatService.sendOperationFailed(reply)
                     })
             })
@@ -34,10 +39,10 @@ db.then(db => {
     bot.on('callback_query', (ctx) => {
         const { id, uid, c, wm } = JSON.parse(ctx.callbackQuery.data);
         const from = ctx.callbackQuery.from;
-        const request = {matchId: id, confirmationId: uid, confirmation: c, withMe: wm, pId: from.id, name: (from.first_name +  (from.last_name || "")) || from.username};
+        const request = {matchId: id, confirmationId: uid, confirmation: c, withMe: parseInt(wm || 0), pId: from.id, name: (from.first_name +  (from.last_name || "")) || from.username};
         matchService.applyConfirmation(request)
         .then(({ match, success, processed }) =>  {
-            console.log(`${JSON.stringify(request)} : ${success} : ${processed} : ${JSON.stringify(match)}`);
+            //console.log(`${JSON.stringify(request)} : ${success} : ${processed} : ${JSON.stringify(match)}`);
             //chatService.sendMatchVoteMessage(replyWithHTML, matchService.matchStats(match))
         });
       })

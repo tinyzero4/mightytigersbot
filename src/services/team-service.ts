@@ -19,7 +19,7 @@ export class TeamService {
 
         Promise.all([
             this.teamColl.createIndex({ team_id: 1 }, { unique: true, dropDups: true }),
-            this.teamColl.createIndex({ name: 1 }, { unique: true, dropDups: true })
+            this.teamColl.createIndex({ name: 1 })
 
         ]).then(data => console.log(`[team-service] indexes were created: ${data}`))
           .catch(err => console.error(err));
