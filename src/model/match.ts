@@ -1,15 +1,20 @@
 import { ObjectId } from "bson";
 
-interface Player {
-    id: string;
-    name: string;
+interface Confirmation {
     confirmation: string;
     confirmationDate: Date;
-    withMe: number;
 }
 
 interface Squad {
-    [propName: string]: Player;
+    [propName: string]: Confirmation;
+}
+
+interface WithMe {
+    [propName: string]: number;
+}
+
+interface Players {
+    [propName: string]: string;
 }
 
 export interface Match {
@@ -18,5 +23,8 @@ export interface Match {
     createdAt: Date;
     date: Date;
     squad?: Squad;
+    withMe?: WithMe;
+    players?: Players;
     completed?: boolean;
+    message_id?: number;
 }

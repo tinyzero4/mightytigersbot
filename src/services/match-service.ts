@@ -69,6 +69,11 @@ export class MatchService {
         };
     }
 
+    setMatchMessage(_id: any, message_id: number) {
+        if (typeof _id !== "object") _id = new ObjectID(_id);
+        return this.matchColl.findOneAndUpdate({ _id }, { $set: { message_id } });
+    }
+
     complete(_id: any) {
         if (typeof _id !== "object") _id = new ObjectID(_id);
         return this.matchColl.findOneAndUpdate({ _id }, { $set: { completed: true } });
@@ -90,25 +95,34 @@ export class MatchService {
     }
 
     private applyPlayerConfirmation(c: ConfirmationRequest): Promise<ConfirmationResult> {
-        const confirmation: any = {
-            [`squad.${c.pId}`]: {
-                confimationDate: new Date(),
-                pId: c.pId,
-                name: c.name
-            }
-        };
-        const withMeUpdate = { [`squad.${c.pId}.withMe`]: c.withMe || 0 };
+        const player: any = { [`players.${c.pId}`]: c.name };
+        const update: any = {};
 
-        if (c.confirmation) confirmation[`squad.${c.pId}`]["confirmation"] = c.confirmation;
+        if (c.confirmation) {
+            Object.assign(update, {
+                $set: {
+                    [`squad.${c.pId}`]: {
+                        confirmation: c.confirmation,
+                        confimationDate: new Date(),
+                    },
+                    [`players.${c.pId}`]: c.name
+                }
+            });
+        }
+        if (c.withMe) {
+            Object.assign(update, {
+                $inc: { [`withMe.${c.pId}`]: c.withMe },
+                $set: { [`players.${c.pId}`]: c.name }
+            });
+        }
 
-        return this.matchColl.findOneAndUpdate(
-            { _id: new ObjectID(c.matchId.toString()) },
-            { $set: confirmation },
-            { returnOriginal: false }
-        ).then(result => {
-            return Promise.resolve({ match: result.value, success: (result.ok === 1) });
-        }).catch(err => {
-            return Promise.resolve({ success: false });
-        });
+        if (!Object.keys(update).length) return Promise.resolve({ success: false });
+
+        return this.matchColl.findOneAndUpdate({ _id: new ObjectID(c.matchId.toString()) }, update, { returnOriginal: false })
+            .then(result => Promise.resolve({ match: result.value, success: (result.ok === 1) }))
+            .catch(err => {
+                console.error(`[match-service] error applying confirmation ${JSON.stringify(c)}. Reason: ${err}`);
+                return Promise.resolve({ success: false });
+            });
     }
 }
