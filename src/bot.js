@@ -32,11 +32,19 @@ db.then(db => {
             })
     })
     bot.on('callback_query', (ctx) => {
-        console.log(ctx.callbackQuery);
+        const data = JSON.parse(ctx.callbackQuery.data);
+        const from = ctx.callbackQuery.from;
+        matchService.applyConfirmation({
+            matchId: data.id,
+            confirmationId: data.uid,
+            playerId: from.id,
+            playerFN: from.first_name,
+            playerLN: from.last_name,
+            playerUN: from.username
+        }).then(m =>  {
+            console.log(`${m} : ${ctx.callbackQuery.data} : ${JSON.stringify(ctx.callbackQuery.from)}`);
+        });
       })
-    bot.use(ctx => {
-        console.log(`Context ${ctx.callbackQuery}`)
-    })
     bot.startPolling()
 }).catch(err => {
     console.error(`[bot] startup error ${err}`)

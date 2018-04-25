@@ -9,17 +9,17 @@ const TEAMS_COLLECTION = "teams";
 
 export class TeamService {
 
-    private collection: Collection;
+    private teamColl: Collection;
 
     private matchService: MatchService;
 
     constructor(private db: Db, matchService: MatchService) {
-        this.collection = db.collection(TEAMS_COLLECTION);
+        this.teamColl = db.collection(TEAMS_COLLECTION);
         this.matchService = matchService;
 
         Promise.all([
-            this.collection.createIndex({ team_id: 1 }, { unique: true, dropDups: true }),
-            this.collection.createIndex({ name: 1 }, { unique: true, dropDups: true })
+            this.teamColl.createIndex({ team_id: 1 }, { unique: true, dropDups: true }),
+            this.teamColl.createIndex({ name: 1 }, { unique: true, dropDups: true })
 
         ]).then(data => console.log(`[team-service] indexes were created: ${data}`))
           .catch(err => console.error(err));
@@ -42,20 +42,20 @@ export class TeamService {
 
     find(_id: any): Promise<Team> {
         if (typeof _id !== "object") _id = new ObjectID(_id);
-        return this.collection.findOne({ _id });
+        return this.teamColl.findOne({ _id });
     }
 
     findByTeamId(team_id: number): Promise<Team> {
-        return this.collection.findOne({ team_id });
+        return this.teamColl.findOne({ team_id });
     }
 
     create(data: Team) {
-        return this.collection.insertOne(Object.assign(data, { created: new Date(), schedule: DEFAULT_SCHEDULE }), { w: 1 });
+        return this.teamColl.insertOne(Object.assign(data, { created: new Date(), schedule: DEFAULT_SCHEDULE }), { w: 1 });
     }
 
     delete(_id: any) {
         if (typeof _id !== "object") _id = new ObjectID(_id);
-        return this.collection.deleteOne({ _id }, { w: 1 });
+        return this.teamColl.deleteOne({ _id }, { w: 1 });
     }
 
 
