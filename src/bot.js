@@ -32,17 +32,13 @@ db.then(db => {
             })
     })
     bot.on('callback_query', (ctx) => {
-        const data = JSON.parse(ctx.callbackQuery.data);
+        const { id, uid, c, wm } = JSON.parse(ctx.callbackQuery.data);
         const from = ctx.callbackQuery.from;
-        matchService.applyConfirmation({
-            matchId: data.id,
-            confirmationId: data.uid,
-            playerId: from.id,
-            playerFN: from.first_name,
-            playerLN: from.last_name,
-            playerUN: from.username
-        }).then(m =>  {
-            console.log(`${m} : ${ctx.callbackQuery.data} : ${JSON.stringify(ctx.callbackQuery.from)}`);
+        const request = {matchId: id, confirmationId: uid, confirmation: c, withMe: wm, pId: from.id, name: (from.first_name +  (from.last_name || "")) || from.username};
+        matchService.applyConfirmation(request)
+        .then(({ match, success, processed }) =>  {
+            console.log(`${JSON.stringify(request)} : ${success} : ${processed} : ${JSON.stringify(match)}`);
+            //chatService.sendMatchVoteMessage(replyWithHTML, matchService.matchStats(match))
         });
       })
     bot.startPolling()
