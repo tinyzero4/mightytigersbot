@@ -24,7 +24,7 @@ export class ChatService {
         reply("*Please register team!*", markdown)
     }
 
-    sendMatchVoteMessage(reply, matchData) {
+    sendMatchVoteMessage(reply, pinChatMessage, matchData) {
         const buttonData = {
             id: matchData.id,
             uid: matchData.uid
@@ -34,8 +34,10 @@ export class ChatService {
             Extra.markup(Markup.inlineKeyboard([
                 CONFIRMATIONS.map(b => Markup.callbackButton(b.btn, JSON.stringify(Object.assign({}, buttonData, {c:b.v})))),
                 CONFIRMATIONS_WITH_ME.map(b => Markup.callbackButton(b, JSON.stringify(Object.assign({}, buttonData, {wm:b})))),
-            ]))
-        );
+            ]))).then(data => {
+                pinChatMessage(data.message_id)
+                return data;
+            });
     }
 
     updateMatchVoteMessage()
