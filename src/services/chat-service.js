@@ -40,5 +40,7 @@ export class ChatService {
             });
     }
 
-    updateMatchVoteMessage()
+    updateMatchVoteMessage(editMessageText, matchData) {
+        console.log(`[chat-service] ${JSON.stringify(match)}`)
+    }
 }
