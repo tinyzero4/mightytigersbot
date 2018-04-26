@@ -46,8 +46,11 @@ db.then(db => {
         };
         matchService.applyConfirmation(request)
             .then(({ match, success, processed }) => {
-                if (success && match) chatService.updateMatchVoteMessage(editMessageText, matchService.matchStats(match))
-                else console.log(`[bot] unsucessful request ${JSON.stringify(request)} status: {success:${success}, processed:${processed}, match:${match}}`)
+                if (success && match) {
+                    chatService.updateMatchVoteMessage(editMessageText, matchService.matchStats(match))
+                } else {
+                    console.log(`[bot] unsucessful request ${JSON.stringify(request)} status: {success:${success}, processed:${processed}, match:${match}}`)
+                }
             });
       })
     bot.startPolling()

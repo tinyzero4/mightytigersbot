@@ -6,6 +6,9 @@
   "dependencies": {
     "@types/mustache": "^0.8.30",
     "@types/shortid": "0.0.29",
+    "dot": "^1.1.2",
+    "ejs": "^2.5.9",
+    "handlebars": "^4.0.11",
     "moment": "^2.22.1",
     "mongodb": "^3.0.7",
     "mustache": "^2.3.0",

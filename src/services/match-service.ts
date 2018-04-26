@@ -4,6 +4,7 @@ import { Team } from "../model/team";
 import { ScheduleService } from "./schedule-service";
 import moment from "moment";
 import shortId from "shortid";
+import { CONFIRMATIONS } from "../config";
 
 const MATCHES_COLLECTION = "matches";
 const CONFIRMATIONS_COLLECTION = "confirms";
@@ -61,10 +62,22 @@ export class MatchService {
     }
 
     matchStats(match: Match): any {
+        const confirmationsByType = Object.keys(match.squad)
+            .map(pId => Object.assign({}, { pId }, match.squad[pId]))
+            .reduce((acc: any, p) => {
+                acc[p.confirmation] = acc[p.confirmation] || [];
+                acc[p.confirmation].push(p);
+                return acc;
+            }, {});
+
         return {
             id: match._id,
             uid: shortId.generate(),
             team_id: match.team_id,
+            total: 0,
+            confirmationsByType,
+            players: match.players,
+            confirmationTypes: CONFIRMATIONS,
             date: moment.utc(match.date).format("ddd,DD.MM@HH:mm")
         };
     }
@@ -80,10 +93,12 @@ export class MatchService {
     }
 
     applyConfirmation(c: ConfirmationRequest): Promise<ConfirmationResult> {
-        return this.shouldProcessConfirmation(c).then(process => {
-            if (!process) return { processed: true };
-            return this.applyPlayerConfirmation(c);
-        });
+        return this.shouldProcessConfirmation(c)
+            .then(process => {
+                if (!process) return { processed: true };
+                return this.applyPlayerConfirmation(c)
+                    .then(data => this.saveConfirmationRequest(c).then(result => data));
+            });
     }
 
     private shouldProcessConfirmation(c: ConfirmationRequest): Promise<boolean> {
