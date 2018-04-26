@@ -35,7 +35,7 @@ db.then(db => {
     })
     bot.on('callback_query', ({editMessageText, callbackQuery}) => {
         const { id, uid, c, wm } = JSON.parse(callbackQuery.data);
-        const from = ctx.callbackQuery.from;
+        const from = callbackQuery.from;
         const request = {
             matchId: id, 
             confirmationId: uid, 
@@ -46,8 +46,8 @@ db.then(db => {
         };
         matchService.applyConfirmation(request)
             .then(({ match, success, processed }) => {
-                if (success) chatService.updateMatchVoteMessage(editMessageText, matchService.matchStats(match))
-                else console.log(`[bot] request ${JSON.stringify(request)} status: {success:${success}, processed:${processed}}`)
+                if (success && match) chatService.updateMatchVoteMessage(editMessageText, matchService.matchStats(match))
+                else console.log(`[bot] unsucessful request ${JSON.stringify(request)} status: {success:${success}, processed:${processed}, match:${match}}`)
             });
       })
     bot.startPolling()

@@ -41,6 +41,6 @@ export class ChatService {
     }
 
     updateMatchVoteMessage(editMessageText, matchData) {
-        console.log(`[chat-service] ${JSON.stringify(match)}`)
+        console.log(`[chat-service] ${JSON.stringify(matchData)}`)
     }
 }

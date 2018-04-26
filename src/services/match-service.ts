@@ -119,7 +119,7 @@ export class MatchService {
         if (!Object.keys(update).length) return Promise.resolve({ success: false });
 
         return this.matchColl.findOneAndUpdate({ _id: new ObjectID(c.matchId.toString()) }, update, { returnOriginal: false })
-            .then(result => Promise.resolve({ match: result.value, success: (result.ok === 1) }))
+            .then(result => Promise.resolve({ match: result.value, success: (result.ok === 1 && result.value != undefined) }))
             .catch(err => {
                 console.error(`[match-service] error applying confirmation ${JSON.stringify(c)}. Reason: ${err}`);
                 return Promise.resolve({ success: false });
