@@ -22,7 +22,7 @@ export interface Match {
     team_id: number;
     createdAt: Date;
     date: Date;
-    squad?: Squad;
+    squad: Squad;
     withMe?: WithMe;
     players?: Players;
     completed?: boolean;

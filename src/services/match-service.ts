@@ -1,10 +1,10 @@
-import { Collection, Db, ObjectID, ObjectId, InsertOneWriteOpResult } from "mongodb";
-import { Match } from "../model/match";
-import { Team } from "../model/team";
-import { ScheduleService } from "./schedule-service";
 import moment from "moment";
 import shortId from "shortid";
-import { CONFIRMATIONS } from "../config";
+import { Collection, Db, ObjectID, InsertOneWriteOpResult } from "mongodb";
+import { Match } from "@models/match";
+import { Team } from "@models/team";
+import { SchedulerService } from "@services/scheduler-service";
+import { CONFIRMATION_TYPES } from "@configs/config";
 
 const MATCHES_COLLECTION = "matches";
 const CONFIRMATIONS_COLLECTION = "confirms";
@@ -30,9 +30,9 @@ export class MatchService {
 
     private confirmColl: Collection;
 
-    private scheduleService: ScheduleService;
+    private scheduleService: SchedulerService;
 
-    constructor(db: Db, scheduleService: ScheduleService) {
+    constructor(db: Db, scheduleService: SchedulerService) {
         this.scheduleService = scheduleService;
         this.matchColl = db.collection(MATCHES_COLLECTION);
         this.confirmColl = db.collection(CONFIRMATIONS_COLLECTION);
@@ -44,21 +44,21 @@ export class MatchService {
     }
 
     create(match: Match): Promise<InsertOneWriteOpResult> {
-        return this.matchColl.insert(Object.assign(match, { createdAt: new Date(), squad: {}, completed: false }), { w: 1 });
+        return this.matchColl.insert({ ...match, createdAt: new Date(), squad: {}, completed: false }, { w: 1 });
     }
 
-    findLatest(team_id: number): Promise<Match> {
+    findLatest(team_id: number): Promise<Match | null> {
         return this.matchColl.findOne({ team_id }, { sort: { date: -1 } });
     }
 
-    find(_id: any): Promise<Match> {
+    find(_id: any): Promise<Match | null> {
         if (typeof _id !== "object") _id = new ObjectID(_id);
         return this.matchColl.findOne({ _id });
     }
 
     scheduleNextMatch(team: Team): Promise<any> {
         const date = this.scheduleService.nextMatchDate(team, new Date());
-        return this.create({ team_id: team.team_id, createdAt: new Date(), date }).then(({ ops }) => ops[0]);
+        return this.create({ date, team_id: team.team_id, createdAt: new Date(), squad: {} }).then(({ ops }) => ops[0]);
     }
 
     matchStats(match: Match): any {
@@ -77,14 +77,14 @@ export class MatchService {
             total: 0,
             confirmationsByType,
             players: match.players,
-            confirmationTypes: CONFIRMATIONS,
+            confirmationTypes: CONFIRMATION_TYPES,
             date: moment.utc(match.date).format("ddd,DD.MM@HH:mm")
         };
     }
 
-    setMatchMessage(_id: any, message_id: number) {
+    setMatchMessage(_id: any, message_id: number): Promise<number> {
         if (typeof _id !== "object") _id = new ObjectID(_id);
-        return this.matchColl.findOneAndUpdate({ _id }, { $set: { message_id } });
+        return this.matchColl.findOneAndUpdate({ _id }, { $set: { message_id } }).then(() => message_id);
     }
 
     complete(_id: any) {
@@ -97,7 +97,7 @@ export class MatchService {
             .then(process => {
                 if (!process) return { processed: true };
                 return this.applyPlayerConfirmation(c)
-                    .then(data => this.saveConfirmationRequest(c).then(result => data));
+                    .then(data => this.saveConfirmationRequest(c).then(() => data));
             });
     }
 
@@ -110,7 +110,6 @@ export class MatchService {
     }
 
     private applyPlayerConfirmation(c: ConfirmationRequest): Promise<ConfirmationResult> {
-        const player: any = { [`players.${c.pId}`]: c.name };
         const update: any = {};
 
         if (c.confirmation) {

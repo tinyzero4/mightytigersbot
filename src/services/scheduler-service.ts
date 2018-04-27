@@ -1,8 +1,7 @@
-import { Team, MatchDay } from "../model/team";
-import moment, { min } from "moment";
-import { Match } from "../model/match";
+import moment from "moment";
+import { Team, MatchDay } from "@models/team";
 
-export class ScheduleService {
+export class SchedulerService {
 
     nextMatchDate(team: Team, now: Date): Date {
         if (!team.schedule) return now;
@@ -13,6 +12,6 @@ export class ScheduleService {
 
     private matchDayToDate(matchDay: MatchDay, date: Date): Date {
         const [hour, minute] = matchDay.time.split(":");
-        return moment.utc(date).isoWeekday(matchDay.day).set({hour: parseInt(hour), minute: parseInt(minute)}).startOf("minute").toDate();
+        return moment.utc(date).isoWeekday(matchDay.day).set({ hour: parseInt(hour), minute: parseInt(minute) }).startOf("minute").toDate();
     }
 }
