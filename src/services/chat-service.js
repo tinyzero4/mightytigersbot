@@ -1,6 +1,6 @@
-const Telegraf = require("telegraf")
-const ejs = require("ejs")
-import { CONFIRMATIONS, CONFIRMATIONS_WITH_ME } from "../config"
+import Telegraf from "telegraf";
+import ejs from "ejs"
+import { CONFIRMATION_TYPES, CONFIRMATION_WITH_ME_TYPES } from "@configs/config"
 
 const Extra = Telegraf.Extra
 const Markup = Telegraf.Markup
@@ -20,7 +20,7 @@ const VOTE_TEMPLATE = `|<b><%=date%></b>| Players: <strong><%=total%></strong> |
 
 export class ChatService {
 
-    sendTeamGreeting(reply) {
+    sendGreeting(reply) {
         reply(`*Lets Play!*`, markdown)
     }
 
@@ -28,18 +28,19 @@ export class ChatService {
         reply("*Ooooops*, I'm sorry, something went wrong. Try again later.", markdown)
     }
 
-    sendTeamNotRegistered(reply) {
+    sendNoTeamRegistered(reply) {
         reply("*Please register team!*", markdown)
     }
 
-    sendMatchVoteMessage(show, pinChatMessage, matchData) {
-        return this.showVoteMessage(show, matchData).then(data => {
-            pinChatMessage(data.message_id)
-            return data;
-        });
+    sendMatchVoteMessage(show, matchData) {
+        return this.showVoteMessage(show, matchData);
     }
 
-    updateMatchVoteMessage(editMessageText, matchData) {
+    pinChatMessage(pinChatMessage, message_id) {
+        return pinChatMessage(message_id).then(() => message_id);
+    }
+
+    refreshVoteMessage(editMessageText, matchData) {
         this.showVoteMessage(editMessageText, matchData)
     }
 
@@ -51,8 +52,8 @@ export class ChatService {
         return show(
             ejs.render(VOTE_TEMPLATE, matchData),
             Extra.markup(Markup.inlineKeyboard([
-                CONFIRMATIONS.map(b => Markup.callbackButton(b.btn, JSON.stringify(Object.assign({}, buttonData, { c: b.v })))),
-                CONFIRMATIONS_WITH_ME.map(b => Markup.callbackButton(b, JSON.stringify(Object.assign({}, buttonData, { wm: b })))),
+                CONFIRMATION_TYPES.map(b => Markup.callbackButton(b.label, JSON.stringify(Object.assign({}, buttonData, { c: b.value })))),
+                CONFIRMATION_WITH_ME_TYPES.map(b => Markup.callbackButton(b, JSON.stringify(Object.assign({}, buttonData, { wm: b })))),
             ])).HTML()
         )
     }

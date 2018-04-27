@@ -3,17 +3,46 @@
         "module": "commonjs",
         "esModuleInterop": true,
         "target": "es6",
-        "noImplicitAny": true,
+        "noImplicitAny": false,
         "moduleResolution": "node",
         "sourceMap": true,
         "outDir": "dist",
         "allowJs": true,
-        "baseUrl": "."
+        "lib": [
+            "es2016"
+        ],
+        "importHelpers": true,
+        "emitDecoratorMetadata": true,
+        "experimentalDecorators": true,
+        "removeComments": true,
+        "strict": false,
+        "strictPropertyInitialization": false,
+        "noImplicitReturns": true,
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
+        "noImplicitThis": false,
+        "skipLibCheck": true,
+        "baseUrl": "./src",
+        "paths": {
+            "@models/*": [
+                "models/*"
+            ],
+            "@services/*": [
+                "services/*"
+            ],
+            "@configs/*": [
+                "configs/*"
+            ],
+            "@db/*": [
+                "db/*"
+            ]
+        },
     },
     "include": [
-        "src/**/*"
+        "./src/**/*",
+        "./typings/**/*",
     ],
     "exclude": [
-        "node_modules"
+        "node_modules",
     ]
 }

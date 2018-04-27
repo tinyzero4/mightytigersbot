@@ -6,10 +6,13 @@
   "dependencies": {
     "@types/mustache": "^0.8.30",
     "@types/shortid": "0.0.29",
+    "class-transformer": "^0.1.9",
     "ejs": "^2.5.9",
+    "lodash": "^4.17.10",
     "moment": "^2.22.1",
     "mongodb": "^3.0.7",
     "npm": "^5.8.0",
+    "reflect-metadata": "^0.1.12",
     "shortid": "^2.2.8",
     "telegraf": "^3.20.0",
     "tslint": "^5.9.1",
@@ -17,7 +20,9 @@
     "uuid": "^3.2.1"
   },
   "devDependencies": {
+    "@types/ejs": "^2.5.1",
     "@types/jest": "^22.2.3",
+    "@types/lodash": "^4.14.108",
     "@types/mongodb": "^3.0.15",
     "@types/node": "^9.6.5",
     "@types/uuid": "^3.4.3",
