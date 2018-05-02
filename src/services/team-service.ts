@@ -35,7 +35,7 @@ export class TeamService {
 
     private scheduleNextMatch(team_id: number): Promise<any> {
         return this.findByTeamId(team_id)
-            .then(team => team ? [this.matchService.scheduleNextMatch(team)] : team)
+            .then(team => team ? this.matchService.scheduleNextMatch(team) : undefined)
             .then(match => [match, true]);
     }
 

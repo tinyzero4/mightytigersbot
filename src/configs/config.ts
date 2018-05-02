@@ -3,11 +3,21 @@ export const MONGO_URI = process.env.MONGO_URI || "mongodb://localhost:27017/tig
 export const DATABASE_NAME = process.env.MONGO_DB || "tigers";
 
 export const DEFAULT_SCHEDULE = [
-    { day: 1, time: "05:00" }, { day: 4, time: "05:00" }
+  { day: 1, time: "05:00" },
+  { day: 4, time: "05:00" },
 ];
 
 export const CONFIRMATION_TYPES = [
-    { value: "⚽", label: "⚽[PLAY]" }, { v: "💩", label: "💩[SLEEP]" }, { v: "🤔", label: "🤔[?]" }
+  { value: "⚽", label: "⚽[PLAY]", going: true },
+  { value: "💩", label: "💩[SLEEP]", going: false },
+  { value: "🤔", label: "🤔[?]", going: false },
 ];
 
-export const WITH_ME_TYPES = ["+1", "-1"];
+export function isGoing(confirmation: string) {
+  return CONFIRMATION_TYPES.filter(ct => ct.going && ct.value === confirmation).length;
+};
+
+export const WITH_ME_TYPES = [
+  "+1",
+  "-1",
+];
