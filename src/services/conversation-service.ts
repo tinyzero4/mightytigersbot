@@ -6,7 +6,7 @@ const Extra = Telegraf.Extra;
 const Markup = Telegraf.Markup;
 const markdown = Extra.markdown();
 
-const VOTE_TEMPLATE = `|<b><%=date%></b>| Players: <strong><%=total%></strong> |
+const voteTemplate = `|<b><%=date%></b>| Players: <strong><%=total%></strong> |
 <% confirmationTypes.forEach(function(type) { %>
 <% let confirms = confirmationsByType[type.value] -%>
 <%=type.value %><b>[<%= confirms ? confirms.length : 0 %>]</b>
@@ -18,7 +18,7 @@ const VOTE_TEMPLATE = `|<b><%=date%></b>| Players: <strong><%=total%></strong> |
 <% }) -%>
 `;
 
-export class ChatService {
+export class ConversationService {
 
   sendGreeting(replyOp) {
     replyOp(`*Lets Play!*`, markdown);
@@ -36,24 +36,29 @@ export class ChatService {
     return this.showVoteMessage(showOp, matchData);
   }
 
-  pinChatMessage(pinChatMessageOp, message_id) {
-    return pinChatMessageOp(message_id).then(() => message_id);
-  }
-
-  refreshVoteMessage(editMessageTextOp, matchData) {
+  updateMatchVoteMessage(editMessageTextOp, matchData) {
     this.showVoteMessage(editMessageTextOp, matchData);
   }
 
-  showVoteMessage(showOp, matchData) {
+  pinChatMessage(pinChatMessageOp, message_id) {
+    return pinChatMessageOp(message_id)
+      .then(() => message_id);
+  }
+
+  /**
+   * Used to build data required for rendering vote message along with action buttons groups.
+   * Each button can send up to 64Kb of data.
+   */
+  private showVoteMessage(showOp, matchData) {
     const buttonData = {
       id: matchData.id,
       uid: matchData.uid,
     };
     return showOp(
-      ejs.render(VOTE_TEMPLATE, matchData),
+      ejs.render(voteTemplate, matchData),
       Extra.markup(Markup.inlineKeyboard([
-        CONFIRMATION_TYPES.map(b => Markup.callbackButton(b.label, JSON.stringify(Object.assign({}, buttonData, { c: b.value })))),
-        WITH_ME_TYPES.map(b => Markup.callbackButton(b, JSON.stringify(Object.assign({}, buttonData, { wm: b })))),
+        CONFIRMATION_TYPES.map(b => Markup.callbackButton(b.label, JSON.stringify({ ...buttonData, c: b.value }))),
+        WITH_ME_TYPES.map(b => Markup.callbackButton(b, JSON.stringify({ ...buttonData, wm: b }))),
       ])).HTML()
     );
   }
