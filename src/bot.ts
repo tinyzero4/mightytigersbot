@@ -79,7 +79,7 @@ connection.then((db) => {
 
   const sendError = (err, msg, reply) => {
     console.error(`[bot] ${msg}. Reason: ${err}`);
-    conversionService.sendOperationFailed(reply);
+    conversionService.sendError(reply);
   };
   bot.startPolling();
 }).catch(err => {

@@ -24,7 +24,7 @@ export class ConversationService {
     replyOp(`*Lets Play!*`, markdown);
   }
 
-  sendOperationFailed(replyOp) {
+  sendError(replyOp) {
     replyOp("*Ooooops*, I'm sorry, something went wrong. Try again later.", markdown);
   }
 
@@ -41,8 +41,7 @@ export class ConversationService {
   }
 
   pinChatMessage(pinChatMessageOp, message_id) {
-    return pinChatMessageOp(message_id)
-      .then(() => message_id);
+    return pinChatMessageOp(message_id).then(() => message_id);
   }
 
   /**
