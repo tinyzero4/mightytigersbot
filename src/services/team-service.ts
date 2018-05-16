@@ -1,6 +1,9 @@
 import { Collection, Db, ObjectID } from "mongodb";
 import { Team } from "@models/team";
-import { classToPlain } from "class-transformer";
+import {
+  classToPlain,
+  plainToClass,
+} from "class-transformer";
 
 const teamsCollection = "teams";
 
@@ -19,9 +22,14 @@ export class TeamService {
       .catch(err => console.error(err));
   }
 
-  find(_id: any): Promise<Team | null> {
+  find(_id: any): Promise<Team> {
     if (typeof _id !== "object") _id = new ObjectID(_id);
-    return this.teamColl.findOne({ _id });
+    return this.resolveTeam({ _id });
+  }
+
+  private resolveTeam(q: any): Promise<Team> {
+    let result: Promise<Team> = this.teamColl.findOne(q);
+    return result.then(team => plainToClass(Team, team));
   }
 
   /**
@@ -29,7 +37,7 @@ export class TeamService {
    * @param team_id team id
    */
   findByTeamId(team_id: number): Promise<Team | null> {
-    return this.teamColl.findOne({ team_id });
+    return this.resolveTeam({ team_id });
   }
 
   create(team: Team) {
