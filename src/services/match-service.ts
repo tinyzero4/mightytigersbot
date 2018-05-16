@@ -83,7 +83,7 @@ export class MatchService {
         this.completeMatch(match);
         return this.teamService.findByTeamId(team_id)
           .then(team => team ? this.scheduleNextMatch(team) : undefined)
-          .then(match => [match, match && true]);
+          .then(match => [match, !!match]);
       } else {
         return Promise.resolve([match, false]);
       }
