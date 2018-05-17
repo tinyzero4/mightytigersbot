@@ -2,7 +2,45 @@
   "name": "mightytigersbot",
   "version": "1.0.0",
   "description": "Bot for MightyTigers Team",
-  "main": "index.js",
+  "main": "bot.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/breedish/mightytigersbot.git"
+  },
+  "author": "breedish",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/breedish/mightytigersbot/issues"
+  },
+  "homepage": "https://github.com/breedish/mightytigersbot#readme",
+  "_moduleAliases": {
+    "@models": "models",
+    "@services": "services",
+    "@configs": "configs",
+    "@db": "db"
+  },
+  "scripts": {
+    "dev": "npm run build && npm run-script run-dev",
+    "build": "npm run build-ts && npm run tslint",
+    "run-dev": "node -r tsconfig-paths/register dist/bot.js",
+    "build-ts": "tsc --traceResolution",
+    "tslint": "tslint -c tslint.json -p tsconfig.json",
+    "test": "jest --no-cache --forceExit --coverage --verbose",
+    "distribute": "rm -rf dist && npm run build && cp package.json dist/package.json",
+    "run": "node ./bot.js",
+    "clean": "rm -rf ./dist"
+  },
+  "jest": {
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js"
+    ],
+    "transform": {
+      "\\.(ts|tsx)$": "<rootDir>/node_modules/ts-jest/preprocessor.js"
+    },
+    "testRegex": "/__tests__/.*\\.(ts|tsx|js)$"
+  },
   "dependencies": {
     "@types/mustache": "^0.8.30",
     "@types/shortid": "0.0.29",
@@ -11,6 +49,7 @@
     "lodash": "^4.17.10",
     "module-alias": "^2.0.6",
     "moment": "^2.22.1",
+    "moment-timezone": "^0.5.17",
     "mongodb": "^3.0.7",
     "npm": "^5.8.0",
     "reflect-metadata": "^0.1.12",
@@ -33,37 +72,6 @@
     "eslint-plugin-import": "^2.11.0",
     "jest": "^22.4.3",
     "ts-jest": "^22.4.4",
-    "tsconfig-paths": "^3.3.1"
+    "tsconfig-paths": "^3.3.2"
   },
-  "jest": {
-    "moduleFileExtensions": [
-      "ts",
-      "tsx",
-      "js"
-    ],
-    "transform": {
-      "\\.(ts|tsx)$": "<rootDir>/node_modules/ts-jest/preprocessor.js"
-    },
-    "testRegex": "/__tests__/.*\\.(ts|tsx|js)$"
-  },
-  "scripts": {
-    "start": "npm run serve",
-    "start:ts": "ts-node -r tsconfig-paths/register src/bot.ts",
-    "build": "npm run build-ts && npm run tslint",
-    "serve": "node -r tsconfig-paths/register dist/bot.js",
-    "build-ts": "tsc --traceResolution",
-    "tslint": "tslint -c tslint.json -p tsconfig.json",
-    "test": "jest --no-cache --forceExit --coverage --verbose",
-    "up": "rm -rf dist && npm run build && cp tsconfig.json dist/tsconfig.json && npm start"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/breedish/mightytigersbot.git"
-  },
-  "author": "breedish",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/breedish/mightytigersbot/issues"
-  },
-  "homepage": "https://github.com/breedish/mightytigersbot#readme"
 }

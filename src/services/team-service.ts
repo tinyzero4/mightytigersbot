@@ -1,9 +1,10 @@
-import { Collection, Db, ObjectID } from "mongodb";
-import { Team } from "@models/team";
 import {
-  classToPlain,
-  plainToClass,
-} from "class-transformer";
+  Collection,
+  Db,
+  ObjectID,
+} from "mongodb";
+import { Team } from "@models/team";
+import { classToPlain } from "class-transformer";
 
 const teamsCollection = "teams";
 
@@ -28,12 +29,11 @@ export class TeamService {
   }
 
   private resolveTeam(q: any): Promise<Team> {
-    let result: Promise<Team> = this.teamColl.findOne(q);
-    return result.then(team => plainToClass(Team, team));
+    return this.teamColl.findOne(q);
   }
 
   /**
-   * Performs lookup by team id. Team id is represented as telegram chat id.
+   * Performs lookup by team id.` Team id is represented as telegram chat id.
    * @param team_id team id
    */
   findByTeamId(team_id: number): Promise<Team | null> {

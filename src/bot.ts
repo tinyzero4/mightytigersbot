@@ -1,3 +1,4 @@
+import "module-alias/register";
 import "reflect-metadata";
 import Telegraf from "telegraf";
 import connection from "@db/mongo";
@@ -81,7 +82,9 @@ connection.then((db) => {
     console.error(`[bot] ${msg}. Reason: ${err}`);
     conversionService.sendError(reply);
   };
+
   bot.startPolling();
+  
 }).catch(err => {
   console.error(`[bot] startup error ${err}`);
   process.exit(1);
