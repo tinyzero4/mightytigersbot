@@ -3,6 +3,8 @@ import { Team, MatchDay } from "@models/team";
 
 export class SchedulerService {
 
+   constructor() {}
+
     nextMatchDate(team: Team, now: Date): Date {
         if (!team.schedule) return now;
         const matchDays = team.schedule.sort((l, r) => l.day - r.day);
@@ -12,6 +14,10 @@ export class SchedulerService {
 
     private matchDayToDate(matchDay: MatchDay, date: Date): Date {
         const [hour, minute] = matchDay.time.split(":");
-        return moment.utc(date).isoWeekday(matchDay.day).set({ hour: parseInt(hour), minute: parseInt(minute) }).startOf("minute").toDate();
+        return moment.utc(date)
+          .isoWeekday(matchDay.day)
+          .set({ hour: parseInt(hour), minute: parseInt(minute) })
+          .startOf("minute")
+          .toDate();
     }
 }

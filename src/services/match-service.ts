@@ -1,4 +1,4 @@
-import moment from "moment";
+import moment from "moment-timezone";
 import shortId from "shortid";
 import _ from "lodash";
 import { Collection, Db, ObjectID, InsertOneWriteOpResult } from "mongodb";
@@ -130,7 +130,7 @@ export class MatchService {
       players: match.players,
       confirmationTypes: CONFIRMATION_TYPES,
       withMe: match.withMe,
-      date: moment.utc(match.date).format("ddd,DD.MM@HH:mm"),
+      date: moment.utc(match.date).tz("Europe/Minsk").format("ddd,DD.MM@HH:mm"),
       moment
     };
   }
