@@ -73,3 +73,5 @@ package-lock.json
 *.backup
 
 dist/
+
+.DS_Store
