@@ -5,21 +5,23 @@ import {
 } from "mongodb";
 import { Team } from "@models/team";
 import { classToPlain } from "class-transformer";
+import connection from "@db/mongo";
 
 const teamsCollection = "teams";
 
 export class TeamService {
 
-  private teamColl: Collection;
+  private teamColl: Promise<Collection>;
 
-  constructor(db: Db) {
-    this.teamColl = db.collection(teamsCollection);
-
-    Promise.all([
-      this.teamColl.createIndex({ team_id: 1 }, { unique: true, dropDups: true }),
-      this.teamColl.createIndex({ name: 1 })
-
-    ]).then(data => console.log(`[team-service] indexes were created: ${data}`))
+  constructor() {
+    this.teamColl = connection.then(db => db.collection(teamsCollection));
+    this.teamColl
+      .then(c => Promise.all([
+          c.createIndex({ team_id: 1 }, { unique: true, dropDups: true }),
+          c.createIndex({ name: 1 })
+        ])
+      )
+      .then(data => console.log(`[team-service] indexes were created: ${data}`))
       .catch(err => console.error(err));
   }
 
@@ -29,7 +31,7 @@ export class TeamService {
   }
 
   private resolveTeam(q: any): Promise<Team> {
-    return this.teamColl.findOne(q);
+    return this.teamColl.then(c => c.findOne(q));
   }
 
   /**
@@ -41,7 +43,7 @@ export class TeamService {
   }
 
   create(team: Team) {
-    return this.teamColl.insertOne(classToPlain(team), { w: 1 });
+    return this.teamColl.then(c => c.insertOne(classToPlain(team), { w: 1 }));
   }
 
 }
