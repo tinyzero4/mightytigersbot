@@ -2,7 +2,7 @@
   "name": "mightytigersbot",
   "version": "1.0.0",
   "description": "Bot for MightyTigers Team",
-  "main": "bot.js",
+  "main": "app.js",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/breedish/mightytigersbot.git"
@@ -20,15 +20,17 @@
     "@db": "db"
   },
   "scripts": {
-    "dev": "npm run build && npm run-script run-dev",
-    "build": "npm run build-ts && npm run tslint",
-    "run-dev": "node -r tsconfig-paths/register dist/bot.js",
-    "build-ts": "tsc --traceResolution",
-    "tslint": "tslint -c tslint.json -p tsconfig.json",
+    "clean": "rm -rf ./dist",
+    "build": "npm run-script clean && npm run build-ts && npm run-script test",
+    "build-ts": "tsc && tslint -c tslint.json -p tsconfig.json",
     "test": "jest --no-cache --forceExit --coverage --verbose",
-    "distribute": "rm -rf dist && npm run build && cp package.json dist/package.json",
-    "run": "node ./bot.js",
-    "clean": "rm -rf ./dist"
+
+    "run-local": "ts-node -r tsconfig-paths/register src/app-dev.ts",
+    
+    "package": "npm run build && cp package.json dist/package.json && cp -R ./node_modules ./dist && zip ./dist/bot.zip ./dist/*",
+
+    "run": "node ./app.js",
+    "run-lambda": "node ./app-lambda.js"
   },
   "jest": {
     "moduleFileExtensions": [

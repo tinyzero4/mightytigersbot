@@ -1,7 +1,7 @@
 import moment from "moment-timezone";
 import shortId from "shortid";
 import _ from "lodash";
-import { Collection, Db, ObjectID, InsertOneWriteOpResult } from "mongodb";
+import { Collection, ObjectID, InsertOneWriteOpResult } from "mongodb";
 import { Match } from "@models/match";
 import { Team } from "@models/team";
 import { SchedulerService } from "@services/scheduler-service";
@@ -9,8 +9,8 @@ import { CONFIRMATION_TYPES } from "@configs/config";
 import { TeamService } from "@services/team-service";
 import connection from "@db/mongo";
 
-const matchCollection = "matches";
-const confirmCollection = "confirms";
+const matchesColl = "matches";
+const updatesColl = "updates";
 
 /**
  * Match confirmation event sent by player.
@@ -47,7 +47,8 @@ export class MatchService {
   constructor(scheduleService: SchedulerService, teamService: TeamService) {
     this.scheduleService = scheduleService;
     this.teamService = teamService;
-    this.matchColl = connection.then(db => db.collection(matchCollection));
+    this.matchColl = connection.then(db => db.collection(matchesColl));
+    this.updatesColl = connection.then(db => db.collection(updatesColl));
     this.matchColl.then(c => c.createIndex({ team_id: 1, date: 1, completed: 1 }));
     this.updatesColl.then(c => c.createIndex({ processed: 1 }, { expireAfterSeconds: 86400 * 3 }));
   }
@@ -139,12 +140,12 @@ export class MatchService {
    */
   linkMessageToMatch(_id: any, message_id: number): Promise<number> {
     if (typeof _id !== "object") _id = new ObjectID(_id);
-    return this.matchColl.then(c => c.findOneAndUpdate({ _id }, { $set: { message_id } }).then(() => message_id);
+    return this.matchColl.then(c => c.findOneAndUpdate({ _id }, { $set: { message_id } }).then(() => message_id));
   }
 
   complete(_id: any) {
     if (typeof _id !== "object") _id = new ObjectID(_id);
-    return this.matchColl.findOneAndUpdate({ _id }, { $set: { completed: true } });
+    return this.matchColl.then(c => c.findOneAndUpdate({ _id }, { $set: { completed: true } }));
   }
 
   processConfirmation(c: ConfirmationEvent): Promise<ConfirmationResult> {
@@ -160,46 +161,46 @@ export class MatchService {
     return CONFIRMATION_TYPES.filter(ct => ct.going && ct.value === confirmation).length > 0;
   }
 
-  private shouldProcessConfirmation(c: ConfirmationEvent): Promise<boolean> {
-    return this.updatesColl.findOne({ _id: c.confirmationId }).then(r => r == undefined);
+  private shouldProcessConfirmation(event: ConfirmationEvent): Promise<boolean> {
+    return this.updatesColl.then(c => c.findOne({ _id: event.confirmationId }).then(r => r == undefined));
   }
 
-  private saveConfirmationRequest(c: ConfirmationEvent): Promise<any> {
-    return this.updatesColl.insert({ _id: c.confirmationId, processed: new Date() }).then(r => r.ops[0]);
+  private saveConfirmationRequest(event: ConfirmationEvent): Promise<any> {
+    return this.updatesColl.then(c => c.insert({ _id: event.confirmationId, processed: new Date() }).then(r => r.ops[0]));
   }
 
-  private applyPlayerConfirmation(c: ConfirmationEvent): Promise<ConfirmationResult> {
+  private applyPlayerConfirmation(event: ConfirmationEvent): Promise<ConfirmationResult> {
     const update: any = {};
 
-    if (c.confirmation) {
+    if (event.confirmation) {
       Object.assign(update, {
         $set: {
-          [`squad.${c.playerId}`]: {
-            confirmation: c.confirmation,
+          [`squad.${event.playerId}`]: {
+            confirmation: event.confirmation,
             confimationDate: new Date(),
           },
-          [`players.${c.playerId}`]: c.playerName
+          [`players.${event.playerId}`]: event.playerName
         }
       });
     }
-    if (c.withPlayer) {
+    if (event.withPlayer) {
       Object.assign(update, {
-        $inc: { [`withMe.${c.playerId}`]: c.withPlayer },
-        $set: { [`players.${c.playerId}`]: c.playerName }
+        $inc: { [`withMe.${event.playerId}`]: event.withPlayer },
+        $set: { [`players.${event.playerId}`]: event.playerName }
       });
     }
 
     if (!Object.keys(update).length) return Promise.resolve({ success: false });
 
-    return this.matchColl.findOneAndUpdate({ _id: new ObjectID(c.matchId.toString()) }, update, { returnOriginal: false })
+    return this.matchColl.then(c => c.findOneAndUpdate({ _id: new ObjectID(event.matchId.toString()) }, update, { returnOriginal: false }))
       .then(result => Promise.resolve({ match: result.value, success: (result.ok === 1 && result.value != undefined) }))
       .catch(err => {
-        console.error(`[match-service] error applying confirmation ${JSON.stringify(c)}. Reason: ${err}`);
+        console.error(`[match-service] error applying confirmation ${JSON.stringify(event)}. Reason: ${err}`);
         return Promise.resolve({ success: false });
       });
   }
 
   private create(match: Match): Promise<InsertOneWriteOpResult> {
-    return this.matchColl.insert({ ...match, createdAt: new Date(), squad: {}, withMe: {}, completed: false }, { w: 1 });
+    return this.matchColl.then(c => c.insert({ ...match, createdAt: new Date(), squad: {}, withMe: {}, completed: false }, { w: 1 }));
   }
 }

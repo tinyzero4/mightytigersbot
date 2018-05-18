@@ -1,4 +1,3 @@
-import "module-alias/register";
 import "reflect-metadata";
 import Telegraf from "telegraf";
 
@@ -82,4 +81,4 @@ const sendError = (err, msg, reply) => {
   conversionService.sendError(reply);
 };
 
-bot.startPolling();
+export { bot };

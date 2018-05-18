@@ -1,6 +1,5 @@
 import {
   Collection,
-  Db,
   ObjectID,
 } from "mongodb";
 import { Team } from "@models/team";
