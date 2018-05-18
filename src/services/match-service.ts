@@ -7,6 +7,7 @@ import { Team } from "@models/team";
 import { SchedulerService } from "@services/scheduler-service";
 import { CONFIRMATION_TYPES } from "@configs/config";
 import { TeamService } from "@services/team-service";
+import connection from "@db/mongo";
 
 const matchCollection = "matches";
 const confirmCollection = "confirms";
@@ -35,24 +36,20 @@ class ConfirmationResult {
 
 export class MatchService {
 
-  private matchColl: Collection<Match>;
+  private matchColl: Promise<Collection<Match>>;
 
-  private updatesColl: Collection;
+  private updatesColl: Promise<Collection>;
 
   private scheduleService: SchedulerService;
 
   private teamService: TeamService;
 
-  constructor(db: Db, scheduleService: SchedulerService, teamService: TeamService) {
+  constructor(scheduleService: SchedulerService, teamService: TeamService) {
     this.scheduleService = scheduleService;
     this.teamService = teamService;
-    this.matchColl = db.collection(matchCollection);
-    this.updatesColl = db.collection(confirmCollection);
-    Promise.all([
-      this.matchColl.createIndex({ team_id: 1, date: 1, completed: 1 }),
-      this.updatesColl.createIndex({ processed: 1 }, { expireAfterSeconds: 86400 * 3 })
-    ]).then(data => console.log(`[match-service] indexes were created: ${data}`))
-      .catch(err => console.error(`[match-service] index creation issues ${err}`));
+    this.matchColl = connection.then(db => db.collection(matchCollection));
+    this.matchColl.then(c => c.createIndex({ team_id: 1, date: 1, completed: 1 }));
+    this.updatesColl.then(c => c.createIndex({ processed: 1 }, { expireAfterSeconds: 86400 * 3 }));
   }
 
   /**
@@ -61,7 +58,7 @@ export class MatchService {
    * @see Team
    */
   findLatest(team_id: number): Promise<Match | null> {
-    return this.matchColl.findOne({ team_id }, { sort: { date: -1 } });
+    return this.matchColl.then(c => c.findOne({ team_id }, { sort: { date: -1 } }));
   }
 
   /**
@@ -70,7 +67,7 @@ export class MatchService {
    */
   find(_id: any): Promise<Match | null> {
     if (typeof _id !== "object") _id = new ObjectID(_id);
-    return this.matchColl.findOne({ _id });
+    return this.matchColl.then(c => c.findOne({ _id }));
   }
 
   /**
