@@ -139,7 +139,7 @@ export class MatchService {
    */
   linkMessageToMatch(_id: any, message_id: number): Promise<number> {
     if (typeof _id !== "object") _id = new ObjectID(_id);
-    return this.matchColl.findOneAndUpdate({ _id }, { $set: { message_id } }).then(() => message_id);
+    return this.matchColl.then(c => c.findOneAndUpdate({ _id }, { $set: { message_id } }).then(() => message_id);
   }
 
   complete(_id: any) {
