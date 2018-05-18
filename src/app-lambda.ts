@@ -1,13 +1,11 @@
-import Telegraf from "telegraf";
-const app = new Telegraf(process.env.BOT_TOKEN);
+import { bot } from "./bot";
 
 exports.handler = (event, context: any, callback) => {
-  const tmp = JSON.parse(event.body);
   if (context) {
-    app.handleUpdate(tmp);
+    bot.handleUpdate(JSON.parse(event.body));
   }
   return callback(undefined, {
     statusCode: 200,
-    body: `${tmp}`,
+    body: `{processed: true, event: "${event.body}"}`,
   });
 };
