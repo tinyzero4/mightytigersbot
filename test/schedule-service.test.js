@@ -17,16 +17,20 @@ test('should return match at 05:00 on Thursday on this week', () => {
   const team = {
     schedule: DEFAULT_SCHEDULE,
   };
-  const event = moment.utc(new Date()).set({
-    hour: 4,
-    minute: 1,
-  }).startOf('minute').isoWeekday(2);
+  const event = moment.utc(new Date())
+    .set({
+      hour: 4,
+      minute: 1,
+    })
+    .startOf('minute')
+    .isoWeekday(2);
 
   expect(scheduleService.nextMatchDate(team, event.toDate()))
-    .toEqual(event.isoWeekday(4).set({
-      hour: 5,
-      minute: 0,
-    }).startOf('minute').toDate());
+    .toEqual(event.isoWeekday(4)
+      .set({
+        hour: 5,
+        minute: 0,
+      }).startOf('minute').toDate());
 });
 
 test('should return match at 05:00 on Monday on next week', () => {
@@ -34,10 +38,13 @@ test('should return match at 05:00 on Monday on next week', () => {
     schedule: DEFAULT_SCHEDULE,
   };
   const now = new Date();
-  const event = moment.utc(now).set({
-    hour: 5,
-    minute: 1,
-  }).startOf('minute').isoWeekday(4);
+  const event = moment.utc(now)
+    .set({
+      hour: 5,
+      minute: 1,
+    })
+    .startOf('minute')
+    .isoWeekday(4);
 
   expect(scheduleService.nextMatchDate(team, event.toDate()))
     .toEqual(moment.utc(now).add('week', 1)
