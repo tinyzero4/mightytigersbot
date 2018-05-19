@@ -80,7 +80,7 @@ export class MatchService {
       if (this.shouldCompleteMatch(match, new Date())) {
         this.completeMatch(match);
         return this.teamService.findByTeamId(team_id)
-          .then(team => team ? this.scheduleNextMatch(team) : undefined)
+          .then(team => !!team ? this.scheduleNextMatch(team) : undefined)
           .then(match => [match, !!match]);
       } else {
         return Promise.resolve([match, false]);
@@ -102,13 +102,13 @@ export class MatchService {
   }
 
   /**
-   * Buils details information with stats for given match. Used in char conversation logic.
+   * Buils details information with stats for given match. Used in chat conversation logic.
    * @param match - match
    */
   getMatchDetails(match: Match): any {
     let playingTotal = 0;
     const confirmationsByType = Object.keys(match.squad)
-      .map(pId => Object.assign({}, { pId }, match.squad[pId]))
+      .map(pId => { return {...match.squad[pId], pId}; } )
       .reduce((acc: any, p) => {
         acc[p.confirmation] = acc[p.confirmation] || [];
         acc[p.confirmation].push(p);
