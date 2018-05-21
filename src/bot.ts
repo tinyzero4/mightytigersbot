@@ -1,5 +1,6 @@
 import "reflect-metadata";
 import Telegraf from "telegraf";
+import { connection } from "@db/mongo";
 
 import {
   BOT_TOKEN,
@@ -32,8 +33,10 @@ const matchService = new MatchService(scheduleService, teamService);
 const conversionService = new ConversationService();
 
 bot.command("/newteam", ({ reply, chat }) => {
+  console.info(`[newteam]${Date.now()}`);
   teamService.create(new Team(chat.title, chat.id))
     .then(() => conversionService.sendGreeting(reply))
+    .then(() => console.info(`[newteam]${Date.now()}`))
     .catch(err => console.error(`[bot] issue while new team creation ${err}`));
 });
 
@@ -76,9 +79,16 @@ bot.on("callback_query", ({ editMessageText, callbackQuery }) => {
   });
 });
 
+const onShutdown = () => {
+  connection.then(c => c.close(true));
+};
+
 const sendError = (err, msg, reply) => {
   console.error(`[bot] ${msg}. Reason: ${err}`);
   conversionService.sendError(reply);
 };
 
-export { bot };
+export {
+  bot,
+  onShutdown,
+};

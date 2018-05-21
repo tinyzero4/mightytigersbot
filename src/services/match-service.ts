@@ -7,7 +7,7 @@ import { Team } from "@models/team";
 import { SchedulerService } from "@services/scheduler-service";
 import { CONFIRMATION_TYPES } from "@configs/config";
 import { TeamService } from "@services/team-service";
-import connection from "@db/mongo";
+import { db } from "@db/mongo";
 
 const matchesColl = "matches";
 const updatesColl = "updates";
@@ -47,8 +47,8 @@ export class MatchService {
   constructor(scheduleService: SchedulerService, teamService: TeamService) {
     this.scheduleService = scheduleService;
     this.teamService = teamService;
-    this.matchColl = connection.then(db => db.collection(matchesColl));
-    this.updatesColl = connection.then(db => db.collection(updatesColl));
+    this.matchColl = db.then(db => db.collection(matchesColl));
+    this.updatesColl = db.then(db => db.collection(updatesColl));
     this.matchColl.then(c => c.createIndex({ team_id: 1, date: 1, completed: 1 }));
     this.updatesColl.then(c => c.createIndex({ processed: 1 }, { expireAfterSeconds: 86400 * 3 }));
   }
@@ -108,7 +108,7 @@ export class MatchService {
   getMatchDetails(match: Match): any {
     let playingTotal = 0;
     const confirmationsByType = Object.keys(match.squad)
-      .map(pId => { return {...match.squad[pId], pId}; } )
+      .map(pId => { return { ...match.squad[pId], pId }; })
       .reduce((acc: any, p) => {
         acc[p.confirmation] = acc[p.confirmation] || [];
         acc[p.confirmation].push(p);
