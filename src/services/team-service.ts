@@ -4,7 +4,7 @@ import {
 } from "mongodb";
 import { Team } from "@models/team";
 import { classToPlain } from "class-transformer";
-import connection from "@db/mongo";
+import { db } from "@db/mongo";
 
 const teamsCollection = "teams";
 
@@ -13,7 +13,7 @@ export class TeamService {
   private teamColl: Promise<Collection>;
 
   constructor() {
-    this.teamColl = connection.then(db => db.collection(teamsCollection));
+    this.teamColl = db.then(db => db.collection(teamsCollection));
     this.teamColl
       .then(c => Promise.all([
           c.createIndex({ team_id: 1 }, { unique: true, dropDups: true }),

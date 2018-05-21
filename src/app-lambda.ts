@@ -1,13 +1,12 @@
 import "module-alias/register";
-import { bot } from "./bot";
+import { bot, onShutdown } from "./bot";
 
 exports.handler = (event, context: any, callback) => {
-  console.info(`${JSON.stringify(event)}`);
   if (context) {
-    bot.handleUpdate(JSON.parse(event.body));
+    bot.handleUpdate(JSON.parse(event.body)).then(() => onShutdown());
   }
   return callback(undefined, {
     statusCode: 200,
-    body: `{processed: true, event: "${event.body}"}`,
+    body: `{processed: true}`,
   });
 };
