@@ -15,11 +15,13 @@ export class TeamService {
   constructor() {
     this.teamColl = db.then(db => db.collection(teamsCollection));
     this.teamColl
-      .then(c => Promise.all([
+      .then(c => {
+        console.log(`Building indexes`);
+        return Promise.all([
           c.createIndex({ team_id: 1 }, { unique: true, dropDups: true }),
           c.createIndex({ name: 1 })
-        ])
-      )
+        ]);
+      })
       .then(data => console.log(`[team-service] indexes were created: ${data}`))
       .catch(err => console.error(err));
   }
