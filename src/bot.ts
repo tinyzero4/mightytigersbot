@@ -35,10 +35,8 @@ const conversionService = new ConversationService();
 bot.options = {};
 
 bot.command("/newteam", ({ reply, chat }) => {
-  console.info(`[newteam] before create}`);
   return teamService.create(new Team(chat.title, chat.id))
     .then(() => conversionService.sendGreeting(reply))
-    .then(() => console.info(`[newteam] after send greeting}`))
     .then(() => onComplete())
     .catch(err => console.error(`[bot] issue while new team creation ${err}`));
 });

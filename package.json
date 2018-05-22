@@ -24,12 +24,13 @@
     "build": "npm run clean && npm run build-ts && npm run test",
     "build-ts": "tsc && tslint -c tslint.json -p tsconfig.json",
     "test": "jest --no-cache --forceExit --coverage --verbose",
-    "run-local": "ts-node -r tsconfig-paths/register src/app-dev.ts",
     "package": "npm run build && cp package.json dist/package.json && cp -R ./node_modules ./dist && cd dist && zip -r ./bot.zip ./* && cd ..",
-    "predeploy" : "npm run package",
+    "predeploy": "npm run package",
     "deploy": "./deploy.sh",
-    "run": "node ./app.js",
-    "run-lambda": "node ./app-lambda.js"
+    "run-local": "ts-node -r tsconfig-paths/register src/app-dev.ts",
+    "run-local-express": "ts-node -r tsconfig-paths/register src/app.ts",
+    "run-dist": "node ./app.js",
+    "run-dist-lambda": "node ./app-lambda.js"
   },
   "jest": {
     "moduleFileExtensions": [
@@ -45,8 +46,11 @@
   "dependencies": {
     "@types/mustache": "^0.8.30",
     "@types/shortid": "0.0.29",
+    "aws-xray-sdk": "^1.2.0",
+    "body-parser": "^1.18.3",
     "class-transformer": "^0.1.9",
     "ejs": "^2.5.9",
+    "express": "^4.16.3",
     "lodash": "^4.17.10",
     "module-alias": "^2.0.6",
     "moment": "^2.22.1",
