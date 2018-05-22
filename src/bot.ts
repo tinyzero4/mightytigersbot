@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import Telegraf from "telegraf";
-import { connection } from "@db/mongo";
+// import { connection } from "@db/mongo";
 
 import {
   BOT_TOKEN,
@@ -32,21 +32,24 @@ const teamService = new TeamService();
 const matchService = new MatchService(scheduleService, teamService);
 const conversionService = new ConversationService();
 
+bot.options = {};
+
 bot.command("/newteam", ({ reply, chat }) => {
-  console.info(`[newteam]${Date.now()}`);
-  teamService.create(new Team(chat.title, chat.id))
+  console.info(`[newteam] before create}`);
+  return teamService.create(new Team(chat.title, chat.id))
     .then(() => conversionService.sendGreeting(reply))
-    .then(() => console.info(`[newteam]${Date.now()}`))
+    .then(() => console.info(`[newteam] after send greeting}`))
+    .then(() => onComplete())
     .catch(err => console.error(`[bot] issue while new team creation ${err}`));
 });
 
 bot.command("/nextmatch", ({ reply, replyWithHTML, pinChatMessage, chat }) => {
-  teamService.findByTeamId(chat.id)
+  return teamService.findByTeamId(chat.id)
     .then((team) => {
       if (!team) {
-        conversionService.sendNoTeamRegistered(reply);
+        return conversionService.sendNoTeamRegistered(reply);
       } else {
-        matchService.nextMatch(chat.id)
+        return matchService.nextMatch(chat.id)
           .then(([match, created]) => {
             if (created && !!match) {
               conversionService.sendMatchVoteMessage(replyWithHTML, matchService.getMatchDetails(match))
@@ -56,7 +59,8 @@ bot.command("/nextmatch", ({ reply, replyWithHTML, pinChatMessage, chat }) => {
             }
           }).catch(err => sendError(err, "Oops, match scheduling error", reply));
       }
-    });
+    })
+    .then(() => onComplete());
 });
 
 bot.on("callback_query", ({ editMessageText, callbackQuery }) => {
@@ -70,17 +74,24 @@ bot.on("callback_query", ({ editMessageText, callbackQuery }) => {
     confirmation: c,
     withPlayer: parseInt(wm || 0),
   };
-  matchService.processConfirmation(confirmRequest).then(({ match, success, processed }) => {
-    if (success && !!match) {
-      conversionService.updateMatchVoteMessage(editMessageText, matchService.getMatchDetails(match));
-    } else {
-      console.log(`[bot] unsucessful request ${JSON.stringify(confirmRequest)} status: {success:${success}, processed:${processed}, match:${match}}`);
-    }
-  });
+  return matchService.processConfirmation(confirmRequest)
+    .then(({ match, success, processed }) => {
+      if (success && !!match) {
+        return conversionService.updateMatchVoteMessage(editMessageText, matchService.getMatchDetails(match));
+      } else {
+        console.log(`[bot] unsucessful request ${JSON.stringify(confirmRequest)} status: {success:${success}, processed:${processed}, match:${match}}`);
+        return Promise.resolve();
+      }
+    })
+    .then(() => onComplete());
 });
 
-const onShutdown = () => {
-  connection.then(c => c.close(true));
+const onComplete = () => {
+  return !!bot.options.shutdownOnCompletion ? shutdown() : Promise.resolve();
+};
+
+const shutdown = () => {
+  // connection.then(c => c.close());
 };
 
 const sendError = (err, msg, reply) => {
@@ -90,5 +101,4 @@ const sendError = (err, msg, reply) => {
 
 export {
   bot,
-  onShutdown,
 };
