@@ -25,7 +25,8 @@
     "build-ts": "tsc && tslint -c tslint.json -p tsconfig.json",
     "test": "jest --no-cache --forceExit --coverage --verbose",
     "run-local": "ts-node -r tsconfig-paths/register src/app-dev.ts",
-    "package": "npm run build && cp package.json dist/package.json && cp -R ./node_modules ./dist && cd dist && zip -r ./bot.zip ./* && cd ..",
+    "package": "npm run-script build && cp package.json dist/package.json && cp -R ./node_modules ./dist && cd dist && zip -r ./bot.zip ./* && cd ..",
+    "deploy": "npm run-script package && ./deploy.sh",
     "run": "node ./app.js",
     "run-lambda": "node ./app-lambda.js"
   },
