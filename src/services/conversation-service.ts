@@ -12,7 +12,7 @@ const voteTemplate = `|<b><%=date%></b>| Players: <strong><%=total%></strong> |
 <%=type.value %><b>[<%= confirms ? confirms.length : 0 %>]</b>
 <% if (confirms) { -%>
 <% confirms.forEach(function(p, i) { -%>
-<i><%=i + 1%>.</i> <%= players[p.pId] %> <% if (withMe[p.pId] && withMe[p.pId] > 0) { -%>(+<%=withMe[p.pId]-%>) <% } -%> @<%= moment(p.confimationDate).format('DD.MM HH:mm:ss') %>
+<i><%=i + 1%>.</i> <%= players[p.pId] %> <% if (withMe[p.pId] && withMe[p.pId] > 0) { -%>(+<%=withMe[p.pId]-%>) <% } -%> @<%= moment(moment.utc(p.confimationDate).tz("Europe/Minsk").format('DD.MM HH:mm:ss') %>
 <% }) -%>
 <% } -%>
 <% }) -%>
@@ -21,15 +21,15 @@ const voteTemplate = `|<b><%=date%></b>| Players: <strong><%=total%></strong> |
 export class ConversationService {
 
   sendGreeting(replyOp) {
-    replyOp(`*Lets Play!*`, markdown);
+    return replyOp(`*Lets Play!*`, markdown);
   }
 
   sendError(replyOp) {
-    replyOp("*Ooooops*, I'm sorry, something went wrong. Try again later.", markdown);
+    return replyOp("*Ooooops*, I'm sorry, something went wrong. Try again later.", markdown);
   }
 
   sendNoTeamRegistered(replyOp) {
-    replyOp("*Please register team!*", markdown);
+    return replyOp("*Please register team!*", markdown);
   }
 
   sendMatchVoteMessage(showOp, matchData) {
@@ -37,7 +37,7 @@ export class ConversationService {
   }
 
   updateMatchVoteMessage(editMessageTextOp, matchData) {
-    this.showVoteMessage(editMessageTextOp, matchData);
+    return this.showVoteMessage(editMessageTextOp, matchData);
   }
 
   pinChatMessage(pinChatMessageOp, message_id) {

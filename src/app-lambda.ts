@@ -1,13 +1,11 @@
 import "module-alias/register";
-import { bot, onShutdown } from "./bot";
+import { bot } from "./bot";
+
+bot.options.shutdownOnCompletion = true;
 
 exports.handler = (event, context: any, callback) => {
-  console.error(`Sample error`);
-  console.info(`Sample info`);
-  console.log(`Sample log`);
-  if (context) {
-    bot.handleUpdate(JSON.parse(event.body)).then(() => onShutdown());
-  }
+  if (!context) console.log(`No context supplied`);
+  bot.handleUpdate(JSON.parse(event.body));
   return callback(undefined, {
     statusCode: 200,
     body: `{processed: true}`,
