@@ -117,7 +117,7 @@ export class MatchService {
       }, {});
 
     const withMeTotal = match.withMe ? _.sumBy(Object.keys(match.withMe), (k) => match.withMe[k] > 0 ? match.withMe[k] : 0) : 0;
-    Object.keys(confirmationsByType).forEach(k => confirmationsByType[k].sort((l, r) => l - r));
+    Object.keys(confirmationsByType).forEach(k => confirmationsByType[k].sort((l, r) => l.confirmationDate - r.confirmationDate));
 
     return {
       id: match._id,
@@ -177,7 +177,7 @@ export class MatchService {
         $set: {
           [`squad.${event.playerId}`]: {
             confirmation: event.confirmation,
-            confimationDate: new Date(),
+            confirmationDate: new Date(),
           },
           [`players.${event.playerId}`]: event.playerName
         }
