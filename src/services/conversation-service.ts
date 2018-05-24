@@ -12,7 +12,7 @@ const voteTemplate = `|<b><%=date%></b>| Players: <strong><%=total%></strong> |
 <%=type.value %><b>[<%= confirms ? confirms.length : 0 %>]</b>
 <% if (confirms) { -%>
 <% confirms.forEach(function(p, i) { -%>
-<i><%=i + 1%>.</i> <%= players[p.pId] %> <% if (withMe[p.pId] && withMe[p.pId] > 0) { -%>(+<%=withMe[p.pId]-%>) <% } -%> @<%= moment(moment.utc(p.confimationDate).tz("Europe/Minsk").format('DD.MM HH:mm:ss') %>
+<i><%=i + 1%>.</i> <%= players[p.pId] %> <% if (withMe[p.pId] && withMe[p.pId] > 0) { -%>(+<%=withMe[p.pId]-%>) <% } -%> @<%= moment.utc(p.confimationDate).tz("Europe/Minsk").format('DD.MM HH:mm:ss') %>
 <% }) -%>
 <% } -%>
 <% }) -%>
@@ -24,8 +24,8 @@ export class ConversationService {
     return replyOp(`*Lets Play!*`, markdown);
   }
 
-  sendError(replyOp, message = "*Ooooops*, I'm sorry, something went wrong. Try again later.") {
-    return replyOp(message, markdown);
+  sendError(replyOp, message) {
+    return replyOp(message || "*Ooooops*, I'm sorry, something went wrong. Try again later.", markdown);
   }
 
   sendNoTeamRegistered(replyOp) {

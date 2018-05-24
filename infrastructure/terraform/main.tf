@@ -2,8 +2,6 @@ provider "aws" {
   region = "${var.aws_config["region"]}"
 }
 
-# data "aws_eip" "tigers_bot_eip" {}
-
 resource "aws_instance" "tigers_bot_instance" {
   ami           = "${var.aws_launch_config["instance_ami"]}"
   instance_type = "${var.aws_launch_config["instance_type"]}"
@@ -42,9 +40,3 @@ resource "aws_eip" "tigers_bot_eip_association" {
   instance = "${aws_instance.tigers_bot_instance.id}"
   vpc      = true
 }
-
-# resource "aws_eip_association" "tigers_bot_eip_association" {
-#   instance_id   = "${aws_instance.tigers_bot_instance.id}"
-#   allocation_id = "${data.aws_eip.tigers_bot_eip.id}"
-# }
-
