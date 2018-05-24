@@ -24,8 +24,8 @@ export class ConversationService {
     return replyOp(`*Lets Play!*`, markdown);
   }
 
-  sendError(replyOp) {
-    return replyOp("*Ooooops*, I'm sorry, something went wrong. Try again later.", markdown);
+  sendError(replyOp, message = "*Ooooops*, I'm sorry, something went wrong. Try again later.") {
+    return replyOp(message, markdown);
   }
 
   sendNoTeamRegistered(replyOp) {

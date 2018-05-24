@@ -30,28 +30,31 @@ const bot = new Telegraf(BOT_TOKEN);
 const scheduleService = new SchedulerService();
 const teamService = new TeamService();
 const matchService = new MatchService(scheduleService, teamService);
-const conversionService = new ConversationService();
+const conversationService = new ConversationService();
 
 bot.options = {};
 
 bot.command("/newteam", ({ reply, chat }) => {
   return teamService.create(new Team(chat.title, chat.id))
-    .then(() => conversionService.sendGreeting(reply))
+    .then(() => conversationService.sendGreeting(reply))
     .then(() => onComplete())
-    .catch(err => console.error(`[bot] issue while new team creation ${err}`));
+    .catch(err => {
+      console.error(`[bot] issue while new team creation ${err}`);
+      conversationService.sendError(reply, "*Team has been already registered*");
+    });
 });
 
 bot.command("/nextmatch", ({ reply, replyWithHTML, pinChatMessage, chat }) => {
   return teamService.findByTeamId(chat.id)
     .then((team) => {
       if (!team) {
-        return conversionService.sendNoTeamRegistered(reply);
+        return conversationService.sendNoTeamRegistered(reply);
       } else {
         return matchService.nextMatch(chat.id)
           .then(([match, created]) => {
             if (created && !!match) {
-              conversionService.sendMatchVoteMessage(replyWithHTML, matchService.getMatchDetails(match))
-                .then(response => conversionService.pinChatMessage(pinChatMessage, response.message_id))
+              conversationService.sendMatchVoteMessage(replyWithHTML, matchService.getMatchDetails(match))
+                .then(response => conversationService.pinChatMessage(pinChatMessage, response.message_id))
                 .then(message_id => matchService.linkMessageToMatch(match._id, message_id))
                 .catch(err => sendError(err, "Ooops, error!", reply));
             }
@@ -75,7 +78,7 @@ bot.on("callback_query", ({ editMessageText, callbackQuery }) => {
   return matchService.processConfirmation(confirmRequest)
     .then(({ match, success, processed }) => {
       if (success && !!match) {
-        return conversionService.updateMatchVoteMessage(editMessageText, matchService.getMatchDetails(match));
+        return conversationService.updateMatchVoteMessage(editMessageText, matchService.getMatchDetails(match));
       } else {
         console.log(`[bot] unsucessful request ${JSON.stringify(confirmRequest)} status: {success:${success}, processed:${processed}, match:${match}}`);
         return Promise.resolve();
@@ -94,7 +97,7 @@ const shutdown = () => {
 
 const sendError = (err, msg, reply) => {
   console.error(`[bot] ${msg}. Reason: ${err}`);
-  conversionService.sendError(reply);
+  conversationService.sendError(reply);
 };
 
 export {

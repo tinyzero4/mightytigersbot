@@ -30,8 +30,7 @@ variable "aws_launch_config" {
   type = "map"
 
   default = {
-    # Amazon Linux AMI 2017.09.1 (HVM), SSD Volume Type - ami-25615740
-    instance_ami  = "ami-1853ac65"
+    instance_ami  = "ami-922914f7"
     instance_type = "t2.micro"
     root_size     = 8
     key_name      = "aws-tigers"
@@ -39,3 +38,4 @@ variable "aws_launch_config" {
 }
 
 variable "BOT_TOKEN" {}
+variable "MONGO_URI" {}
