@@ -1,4 +1,4 @@
-import "module-alias/register"; // Uncomment this line for production!!!
+import "module-alias/register"; // Comment this line for dev!!!
 
 import {
   SSL_CERT_PATH,
