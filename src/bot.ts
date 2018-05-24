@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import Telegraf from "telegraf";
-// import { connection } from "@db/mongo";
+import { connection } from "@db/mongo";
 
 import {
   BOT_TOKEN,
@@ -92,7 +92,7 @@ const onComplete = () => {
 };
 
 const shutdown = () => {
-  // connection.then(c => c.close());
+  connection.then(c => c.close());
 };
 
 const sendError = (err, msg, reply) => {
