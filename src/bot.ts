@@ -38,10 +38,7 @@ bot.command("/newteam", ({ reply, chat }) => {
   return teamService.create(new Team(chat.title, chat.id))
     .then(() => conversationService.sendGreeting(reply))
     .then(() => onComplete())
-    .catch(err => {
-      console.error(`[bot] issue while new team creation ${err}`);
-      conversationService.sendError(reply, "*Team has been already registered*");
-    });
+    .catch(err => handleError(err, "*Team has been already registered*", reply));
 });
 
 bot.command("/nextmatch", ({ reply, replyWithHTML, pinChatMessage, chat }) => {
@@ -56,9 +53,9 @@ bot.command("/nextmatch", ({ reply, replyWithHTML, pinChatMessage, chat }) => {
               conversationService.sendMatchVoteMessage(replyWithHTML, matchService.getMatchDetails(match))
                 .then(response => conversationService.pinChatMessage(pinChatMessage, response.message_id))
                 .then(message_id => matchService.linkMessageToMatch(match._id, message_id))
-                .catch(err => sendError(err, "Ooops, error!", reply));
+                .catch(err => handleError(err, "Ooops, error!", reply));
             }
-          }).catch(err => sendError(err, "Oops, match scheduling error", reply));
+          }).catch(err => handleError(err, "Oops, match scheduling error", reply));
       }
     })
     .then(() => onComplete());
@@ -95,7 +92,7 @@ const shutdown = () => {
   connection.then(c => c.close());
 };
 
-const sendError = (err, msg, reply) => {
+const handleError = (err, msg, reply) => {
   console.error(`[bot] ${msg}. Reason: ${err}`);
   conversationService.sendError(reply);
 };
