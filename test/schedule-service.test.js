@@ -2,8 +2,7 @@ const service = require('../src/services/scheduler-service');
 const moment = require('moment');
 
 const scheduleService = new service.SchedulerService();
-const DEFAULT_SCHEDULE = [
-  {
+const DEFAULT_SCHEDULE = [{
     day: 1,
     time: '05:00',
   },
@@ -65,4 +64,25 @@ test('should return match on month rollover', () => {
   };
   const timeTravel = moment.utc('2018-04-27T06').toDate();
   expect(scheduleService.nextMatchDate(team, timeTravel)).toEqual(moment.utc('2018-05-04T05:00').toDate());
+});
+
+test('should return next match on same day for schedule with several events per day', () => {
+  const team = {
+    schedule: [
+      {
+        day: 5,
+        time: '08:00',
+      },
+      {
+        day: 5,
+        time: '05:00',
+      },
+      {
+        day: 5,
+        time: '06:00',
+      },
+    ],
+  };
+  const timeTravel = moment.utc('2018-05-25T03').toDate();
+  expect(scheduleService.nextMatchDate(team, timeTravel)).toEqual(moment.utc('2018-05-25T05:00').toDate());
 });
