@@ -1,8 +1,8 @@
 export const BOT_TOKEN = process.env.BOT_TOKEN || "588400254:AAHRYluiI7th2eIK4VdskgP_VegSljGqeVk";
 export const MONGO_URI = process.env.MONGO_URI || "mongodb://localhost:27017/tigers";
 export const DATABASE_NAME = process.env.MONGO_DB || "tigers";
-export const SSL_CERT_PATH = process.env.SSL_CERT_PATH || "./tigers-cert.crt";
-export const SSL_KEY_PATH = process.env.SSL_KEY_PATH || "./tigers-cert.key";
+export const SSL_CERT_PATH = process.env.SSL_CERT_PATH || "./tigers-certificate.pem";
+export const SSL_KEY_PATH = process.env.SSL_KEY_PATH || "./tigers-certificate.key";
 
 export const DEFAULT_SCHEDULE = [
   { day: 1, time: "05:00" },

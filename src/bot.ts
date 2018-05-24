@@ -94,7 +94,7 @@ const shutdown = () => {
 
 const handleError = (err, msg, reply) => {
   console.error(`[bot] ${msg}. Reason: ${err}`);
-  conversationService.sendError(reply);
+  return conversationService.sendError(reply, msg);
 };
 
 export {
