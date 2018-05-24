@@ -7,7 +7,7 @@ export class SchedulerService {
 
     nextMatchDate(team: Team, now: Date): Date {
         if (!team.schedule) return now;
-        const matchDays = team.schedule.sort((l, r) => l.day - r.day);
+        const matchDays = team.schedule.sort((l, r) => `${l.day}@${l.time}` > `${r.day}@${r.time}` ? 1 : -1);
         const nextOnWeek = matchDays.map(matchDay => this.matchDayToDate(matchDay, now)).find(date => date > now);
         return nextOnWeek || this.matchDayToDate(matchDays[0], moment.utc(now).add(1, "week").toDate());
     }
