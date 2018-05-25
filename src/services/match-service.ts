@@ -192,7 +192,11 @@ export class MatchService {
 
     if (!Object.keys(update).length) return Promise.resolve({ success: false });
 
-    return this.matchColl.then(c => c.findOneAndUpdate({ _id: new ObjectID(event.matchId.toString()) }, update, { returnOriginal: false }))
+    const query = {
+      _id: new ObjectID(event.matchId.toString()),
+      date: { $gte: moment.utc().toDate() }
+    };
+    return this.matchColl.then(c => c.findOneAndUpdate(query, update, { returnOriginal: false }))
       .then(result => Promise.resolve({ match: result.value, success: (result.ok === 1 && result.value != undefined) }))
       .catch(err => {
         console.error(`[match-service] error applying confirmation ${JSON.stringify(event)}. Reason: ${err}`);
