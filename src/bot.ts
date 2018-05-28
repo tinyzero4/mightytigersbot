@@ -26,6 +26,8 @@ import {
   Team,
 } from "@models/team";
 
+console.log(`Starting bot ${BOT_TOKEN}`);
+
 const bot = new Telegraf(BOT_TOKEN);
 const scheduleService = new SchedulerService();
 const teamService = new TeamService();
@@ -35,6 +37,7 @@ const conversationService = new ConversationService();
 bot.options = {};
 
 bot.command("/newteam", ({ reply, chat }) => {
+  console.log(`[newteam] : ${new Date()}`);
   return teamService.create(new Team(chat.title, chat.id))
     .then(() => conversationService.sendGreeting(reply))
     .then(() => onComplete())
@@ -42,6 +45,7 @@ bot.command("/newteam", ({ reply, chat }) => {
 });
 
 bot.command("/nextmatch", ({ reply, replyWithHTML, pinChatMessage, chat }) => {
+  console.log(`[nextmatch] : ${new Date()}`);
   return teamService.findByTeamId(chat.id)
     .then((team) => {
       if (!team) {

@@ -6,13 +6,13 @@ const Extra = Telegraf.Extra;
 const Markup = Telegraf.Markup;
 const markdown = Extra.markdown();
 
-const voteTemplate = `|<b><%=date%></b>| Players: <strong><%=total%></strong> |
+const voteTemplate = `|<b><%=date%></b>|Players: <strong><%=total%></strong>|
 <% confirmationTypes.forEach(function(type) { %>
 <% let confirms = confirmationsByType[type.value] -%>
 <%=type.value %><b>[<%= confirms ? confirms.length : 0 %>]</b>
 <% if (confirms) { -%>
 <% confirms.forEach(function(p, i) { -%>
-<i><%=i + 1%>.</i> <%= players[p.pId] %> <% if (withMe[p.pId] && withMe[p.pId] > 0) { -%>(+<%=withMe[p.pId]-%>) <% } -%> @<%= moment.utc(p.confirmationDate).tz("Europe/Minsk").format('DD.MM HH:mm:ss') %>
+<i><%=i + 1%>.</i> <%= players[p.pId] %> <% if (withMe[p.pId] && withMe[p.pId] > 0) { -%>(+<%=withMe[p.pId]-%>) <% } -%>
 <% }) -%>
 <% } -%>
 <% }) -%>
