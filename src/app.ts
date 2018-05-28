@@ -27,5 +27,9 @@ app.post("/mightytigers", (req, res) => {
     });
 });
 
+app.get("/health", (_req, res) => {
+  return res.json({ version: "1.0" });
+});
+
 http.createServer(app).listen(3000);
 https.createServer(options, app).listen(443);
