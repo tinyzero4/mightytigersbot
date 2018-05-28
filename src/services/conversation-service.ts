@@ -12,7 +12,7 @@ const voteTemplate = `|<b><%=date%></b>|Players: <strong><%=total%></strong>|
 <%=type.value %><b>[<%= confirms ? confirms.length : 0 %>]</b>
 <% if (confirms) { -%>
 <% confirms.forEach(function(p, i) { -%>
-<i><%=i + 1%>.</i> <%= players[p.pId] %> <% if (withMe[p.pId] && withMe[p.pId] > 0) { -%>(+<%=withMe[p.pId]-%>) <% } -%>
+<i><%=i + 1%>.</i> <%= players[p.pId] %> <% if (withMe[p.pId] && withMe[p.pId] > 0) { -%>(+<%=withMe[p.pId]-%>) <% } -%> <i>@<%= moment.utc(p.confirmationDate).tz("Europe/Minsk").format('DD.MM HH:mm') %></i>
 <% }) -%>
 <% } -%>
 <% }) -%>
