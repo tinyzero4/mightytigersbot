@@ -29,8 +29,7 @@
     "deploy": "./deploy.sh",
     "run-local": "DEBUG=local:a ts-node -r tsconfig-paths/register src/app-dev.ts",
     "run-local-express": "ts-node -r tsconfig-paths/register src/app.ts",
-    "run-dist": "node ./app.js",
-    "run-dist-lambda": "node ./app-lambda.js"
+    "run-dist": "node ./app.js"
   },
   "jest": {
     "moduleFileExtensions": [
