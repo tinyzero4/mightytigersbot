@@ -2,8 +2,8 @@ import Telegraf from "telegraf";
 import ejs from "ejs";
 import { CONFIRMATION_TYPES, WITH_ME_TYPES } from "@configs/config";
 
-const Extra = Telegraf.Extra;
-const Markup = Telegraf.Markup;
+const Extra = (Telegraf as any).Extra;
+const Markup = (Telegraf as any).Markup;
 const markdown = Extra.markdown();
 
 const voteTemplate = `|<b><%=date%></b>|Players: <strong><%=total%></strong>|
