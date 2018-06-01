@@ -19,6 +19,7 @@ const app = express();
 app.use(express.json());
 
 app.post("/mightytigers", (req, res) => {
+  console.log(`[handle update]: ${new Date()}`);
   bot.handleUpdate(req.body)
     .then(() => res.json({ processed: true }))
     .catch((err) => {
