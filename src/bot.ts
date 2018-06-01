@@ -1,6 +1,5 @@
 import "reflect-metadata";
 import Telegraf from "telegraf";
-import { connection } from "@db/mongo";
 
 import {
   BOT_TOKEN,
@@ -34,13 +33,10 @@ const teamService = new TeamService();
 const matchService = new MatchService(scheduleService, teamService);
 const conversationService = new ConversationService();
 
-bot.options = {};
-
 bot.command("/newteam", ({ reply, chat }) => {
   console.log(`[newteam] : ${new Date()}`);
   return teamService.create(new Team(chat.title, chat.id))
     .then(() => conversationService.sendGreeting(reply))
-    .then(() => onComplete())
     .catch(err => handleError(err, "*Team has been already registered*", reply));
 });
 
@@ -61,14 +57,13 @@ bot.command("/nextmatch", ({ reply, replyWithHTML, pinChatMessage, chat }) => {
             }
           }).catch(err => handleError(err, "Oops, match scheduling error", reply));
       }
-    })
-    .then(() => onComplete());
+    });
 });
 
 bot.on("callback_query", ({ editMessageText, callbackQuery }) => {
   const { id, uid, c, wm } = JSON.parse(callbackQuery.data);
   const { from } = callbackQuery;
-  const confirmRequest = {
+  const confirmRequest: any = {
     matchId: id,
     playerId: from.id,
     playerName: (from.first_name + (from.last_name || "")) || from.username,
@@ -84,17 +79,8 @@ bot.on("callback_query", ({ editMessageText, callbackQuery }) => {
         console.log(`[bot] unsucessful request ${JSON.stringify(confirmRequest)} status: {success:${success}, processed:${processed}, match:${match}}`);
         return Promise.resolve();
       }
-    })
-    .then(() => onComplete());
+    });
 });
-
-const onComplete = () => {
-  return !!bot.options.shutdownOnCompletion ? shutdown() : Promise.resolve();
-};
-
-const shutdown = () => {
-  connection.then(c => c.close());
-};
 
 const handleError = (err, msg, reply) => {
   console.error(`[bot] ${msg}. Reason: ${err}`);
