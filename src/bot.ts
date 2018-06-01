@@ -27,11 +27,13 @@ import {
 
 console.log(`Starting bot ${BOT_TOKEN}`);
 
-const bot = new Telegraf(BOT_TOKEN);
+const bot:any = new Telegraf(BOT_TOKEN);
 const scheduleService = new SchedulerService();
 const teamService = new TeamService();
 const matchService = new MatchService(scheduleService, teamService);
 const conversationService = new ConversationService();
+
+bot.telegram.getMe().then((botInfo) => bot.options.username = botInfo.username)
 
 bot.command("/newteam", ({ reply, chat }) => {
   console.log(`[newteam] : ${new Date()}`);
