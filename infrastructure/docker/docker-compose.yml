@@ -1,0 +1,29 @@
+version: '2.2'
+services:
+  bot:
+    image: breedish/mightytigersbot
+    container_name: mightytigersbot
+    ports:
+      - "4000:3000"
+    environment: 
+      - MONGO_URI=mongodb://db:27017
+    depends_on:
+      - db
+    networks: 
+      tigersbotnet:
+        aliases:
+          - tigersbot
+  db:
+    image: mongo
+    container_name: mightytigersbot_db
+    ports:
+      - "37017:27017"
+    networks: 
+      tigersbotnet:
+        aliases:
+          - db
+
+networks:
+  tigersbotnet:
+    external: false
+    name: tigersbotnet

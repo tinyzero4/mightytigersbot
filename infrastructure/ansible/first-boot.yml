@@ -1,0 +1,34 @@
+- name: 'Setup instances'
+  hosts: 'tag_Type_tigers_bot'
+  gather_facts: no
+  tasks:
+  - name: Update all packages to latest
+    yum: name=* state=latest
+    become: yes
+  - name: Install Python Pip
+    yum: name=python-pip state=latest
+    become: yes
+  # - name: Upgrade pip
+  #   pip:
+  #     name: pip
+  #     extra_args: --upgrade
+  # - name: Ensure docker is installed
+  #   yum: name=docker state=latest
+  #   become: yes
+  # - name: install "requests" module
+  #   pip:
+  #     name: requests
+  #     extra_args: --user
+  - name: Install dependent python modules
+    pip:
+      name: "{{item}}"
+      extra_args: --user
+      state: present
+    with_items:
+      - docker
+      - docker-py
+      - docker-compose
+  - name: Start docker daemon
+    become: yes
+    service: name=docker state=started enabled=yes sleep=1
+    
