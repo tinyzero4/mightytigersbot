@@ -2,33 +2,32 @@
   hosts: 'tag_Type_tigers_bot'
   gather_facts: no
   tasks:
+  - name: Ensure group "docker" exists
+    become: yes
+    group:
+      name: docker
+      state: present
+  - name: Ensure ec2-user belongs to "docker" group
+    become: yes
+    user:
+      name: ec2-user
+      groups: docker
+      append: yes
   - name: Update all packages to latest
     yum: name=* state=latest
     become: yes
   - name: Install Python Pip
     yum: name=python-pip state=latest
     become: yes
-  # - name: Upgrade pip
-  #   pip:
-  #     name: pip
-  #     extra_args: --upgrade
-  # - name: Ensure docker is installed
-  #   yum: name=docker state=latest
-  #   become: yes
-  # - name: install "requests" module
-  #   pip:
-  #     name: requests
-  #     extra_args: --user
-  - name: Install dependent python modules
+  - name: Install dependent Python modules
     pip:
       name: "{{item}}"
       extra_args: --user
       state: present
     with_items:
-      - docker
-      - docker-py
       - docker-compose
-  - name: Start docker daemon
+      - PyYAML
+  - name: Start Docker daemon
     become: yes
     service: name=docker state=started enabled=yes sleep=1
     
