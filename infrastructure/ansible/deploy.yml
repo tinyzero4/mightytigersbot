@@ -1,0 +1,16 @@
+- name: Deploy latest version 
+  hosts: 'tag_Type_tigers_bot'
+  gather_facts: no
+  tasks:
+    - docker_service:
+        project_src: ./docker
+        state: absent
+      become: yes
+      environment:
+        PYTHONPATH: "{{lookup('env','PYTHONPATH') }}:/usr/local/lib/python2.7/dist-packages:/usr/local/lib/python2.7/site-packages"
+    - docker_service:
+        project_src: ./docker
+        register: output
+      become: yes
+    - debug:
+        var: output
