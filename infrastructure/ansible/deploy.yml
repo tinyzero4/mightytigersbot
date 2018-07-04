@@ -1,16 +1,49 @@
-- name: Deploy latest version 
+- name: Deploy artifact
   hosts: 'tag_Type_tigers_bot'
   gather_facts: no
+  vars:
+    DOCKER_COMPOSE_LOCAL_PATH: ../docker
+    DOCKER_COMPOSE_REMOTE_PATH: /tmp/mightytigers
+    MONGO_URI: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+          36356335393539656239303431313834616330363234366462373436393866313364313438626537
+          3439343935656633636166396661336134386362316463350a616633616333616565303435376635
+          37313735376633616530336631666663366166646363613833306664663463643266393130353263
+          3234663466633732360a663733623933336365666439633664313566653961353833663737373933
+          66336362386630373332623033633430313064376437323037376339393930616561663531663863
+          31393632356465303630656139303465363233366162316665313130366163363362333331363131
+          36333662636461663862623161323738663765323039643533643565613737373061613966613033
+          62616466616163363632336665303634633862323036646437336139346361336630616263666233
+          33396137656532313664656563393538616635666337313339326465346238383630376562386436
+          35393261636139356539643865633761346632636334396465356466363363303735616137383365
+          65336630376530303364636162336632643935633236356665653765373938386434383763386166
+          63613634376363633737326365333964653930643737656361326466313035623038643739333936
+          33306636313635623662636237343933646432383835373630316162663838373932333963323339
+          34663731653861386162333731643933316365656235623263633634663466356462616336353366
+          386562346237343131656638386366373931
   tasks:
-    - docker_service:
-        project_src: ./docker
+    - name: Shutdown bot
+      docker_service:
+        project_src: "{{ DOCKER_COMPOSE_REMOTE_PATH }}"
         state: absent
-      become: yes
-      environment:
-        PYTHONPATH: "{{lookup('env','PYTHONPATH') }}:/usr/local/lib/python2.7/dist-packages:/usr/local/lib/python2.7/site-packages"
-    - docker_service:
-        project_src: ./docker
-        register: output
-      become: yes
-    - debug:
-        var: output
+    - name: Ensure docker-compose config dir exists
+      file: 
+        path: "{{ DOCKER_COMPOSE_REMOTE_PATH }}"
+        state: directory
+    - name: Copy docker-compose config
+      copy:
+        src : "{{ DOCKER_COMPOSE_LOCAL_PATH }}/docker-compose-prod.yml"
+        dest: "{{ DOCKER_COMPOSE_REMOTE_PATH }}/docker-compose.yml"
+        owner: ec2-user
+        mode: 0644
+    - name: Ensure docker-compose .env config exists
+      copy:
+        content: "MONGO_URI={{ MONGO_URI }}"
+        dest: "{{ DOCKER_COMPOSE_REMOTE_PATH }}/.env"
+    - name: Start bot
+      docker_service:
+        project_src: "{{ DOCKER_COMPOSE_REMOTE_PATH }}"
+        state: present
+        pull: yes
+        recreate: always
+        debug: yes

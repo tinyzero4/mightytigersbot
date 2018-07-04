@@ -1,3 +1,3 @@
 #!/bin/sh
 
-ansible-playbook ansible/deploy.yml
+ansible-playbook --vault-id @prompt ansible/deploy.yml
