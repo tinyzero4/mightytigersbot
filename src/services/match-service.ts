@@ -162,11 +162,11 @@ export class MatchService {
   }
 
   private shouldProcessConfirmation(event: ConfirmationEvent): Promise<boolean> {
-    return this.updatesColl.then(c => c.findOne({ _id: event.confirmationId }).then(r => r == undefined));
+    return this.updatesColl.then(c => c.findOne({ _id: `${event.confirmationId}:${event.matchId}:${event.playerId}` }).then(r => r == undefined));
   }
 
   private saveConfirmationRequest(event: ConfirmationEvent): Promise<any> {
-    return this.updatesColl.then(c => c.insert({ _id: event.confirmationId, processed: new Date() }).then(r => r.ops[0]));
+    return this.updatesColl.then(c => c.insert({ _id: `${event.confirmationId}:${event.matchId}:${event.playerId}`, processed: new Date() }).then(r => r.ops[0]));
   }
 
   private applyPlayerConfirmation(event: ConfirmationEvent): Promise<ConfirmationResult> {
