@@ -8,3 +8,4 @@ services:
       - "8443:443"
     environment: 
       - "MONGO_URI=${MONGO_URI}"
+      - "BOT_TOKEN=${BOT_TOKEN}"
