@@ -3,6 +3,7 @@ import "module-alias/register"; // Comment this line for dev!!!
 import {
   SSL_CERT_PATH,
   SSL_KEY_PATH,
+  VERSION,
 } from "@configs/config";
 import { bot } from "./bot";
 import fs from "fs";
@@ -29,7 +30,7 @@ app.post("/mightytigers", (req, res) => {
 });
 
 app.get("/health", (_req, res) => {
-  return res.json({ version: "1.0" });
+  return res.json({ version: VERSION });
 });
 
 http.createServer(app).listen(3000);

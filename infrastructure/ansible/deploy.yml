@@ -4,6 +4,7 @@
   vars:
     DOCKER_COMPOSE_LOCAL_PATH: ../docker
     DOCKER_COMPOSE_REMOTE_PATH: /tmp/mightytigers
+    BOT_TOKEN: "588400254:AAHRYluiI7th2eIK4VdskgP_VegSljGqeVk"
     MONGO_URI: !vault |
           $ANSIBLE_VAULT;1.1;AES256
           36356335393539656239303431313834616330363234366462373436393866313364313438626537
@@ -38,7 +39,9 @@
         mode: 0644
     - name: Ensure docker-compose .env config exists
       copy:
-        content: "MONGO_URI={{ MONGO_URI }}"
+        content: |
+          MONGO_URI={{ MONGO_URI }}
+          BOT_TOKEN={{ BOT_TOKEN }}
         dest: "{{ DOCKER_COMPOSE_REMOTE_PATH }}/.env"
     - name: Start bot
       docker_service:
