@@ -24,9 +24,6 @@
     "build": "npm run clean && npm run build-ts && npm run test",
     "build-ts": "tsc && tslint -c tslint.json -p tsconfig.json",
     "test": "jest --no-cache --forceExit --coverage --verbose",
-    "package": "npm run build && cp package.json dist/package.json && cp -R ./node_modules ./dist && cd dist && zip -r ./bot.zip ./* && cd ..",
-    "predeploy": "npm run package",
-    "deploy": "./deploy.sh",
     "run-local": "DEBUG=local:a ts-node -r tsconfig-paths/register src/app-dev.ts",
     "run-local-express": "ts-node -r tsconfig-paths/register src/app.ts",
     "run-dist": "node ./app.js"

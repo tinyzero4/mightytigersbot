@@ -18,7 +18,7 @@ Local environment:
 - ansible via pip (+ boto)
 - terraform
 
-### Development
+## Development
 
 To run local instance of bot:
 
@@ -28,7 +28,7 @@ node run-script run-local
 
 ```
 
-## Running the tests
+### Running the tests
 
 ```bash
 
