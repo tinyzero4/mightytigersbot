@@ -5,7 +5,8 @@
     "exclude": [
         "node_modules",
         "**/node_modules/*",
-        "dist"
+        "dist",
+        "target"
     ],
     "include": [
         "src/**/*",
