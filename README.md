@@ -21,37 +21,40 @@ Local environment:
 ## Development
 
 To run local instance of bot:
-
-```
-
+```bash
 node run-script run-local
-
 ```
 
 ### Running the tests
 
 ```bash
-
 node run-script test
-
 ```
 
 ## Deployment
 
-**TBD**
+1. Package artifact
+```bash
+npm run-script package
+```
+2. Build docker image
+```bash
+./build-docker.sh
+```
+>> docker login could be required to do before operation.
+3. 
 
-#### Enable WebHook
+
+
+### Enable WebHook
 
 ```bash
-
 curl -X POST \
   https://api.telegram.org/bot{BOT_TOKEN}/setWebhook \
   -H 'content-type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW' \
   -F url={BOT_ENDPOINT} \
   -F certificate=@path/to/certificate.pem
-
 ```
-
 
 ## Contributing
 
@@ -63,7 +66,7 @@ We use [SemVer](http://semver.org/) for versioning.
 
 ## Authors
 
-* breedish - initial work
+- breedish - initial work
 
 ## License
 

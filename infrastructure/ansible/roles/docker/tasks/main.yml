@@ -1,3 +1,0 @@
----
-  - name: Print message
-    debug: "debug message"
