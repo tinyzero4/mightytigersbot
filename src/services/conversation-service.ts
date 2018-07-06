@@ -1,4 +1,5 @@
 import Telegraf from "telegraf";
+import shortId from "shortid";
 import ejs from "ejs";
 import { CONFIRMATION_TYPES, WITH_ME_TYPES } from "@configs/config";
 
@@ -50,14 +51,13 @@ export class ConversationService {
    */
   private showVoteMessage(showOp, matchData) {
     const buttonData = {
-      id: matchData.id,
-      uid: matchData.uid,
+      id: matchData.id
     };
     return showOp(
       ejs.render(voteTemplate, matchData),
       Extra.markup(Markup.inlineKeyboard([
-        CONFIRMATION_TYPES.map(b => Markup.callbackButton(b.label, JSON.stringify({ ...buttonData, c: b.value }))),
-        WITH_ME_TYPES.map(b => Markup.callbackButton(b, JSON.stringify({ ...buttonData, wm: b }))),
+        CONFIRMATION_TYPES.map(b => Markup.callbackButton(b.label, JSON.stringify({ ...buttonData, uid: shortId.generate(), c: b.value }))),
+        WITH_ME_TYPES.map(b => Markup.callbackButton(b, JSON.stringify({ ...buttonData, uid: shortId.generate(), wm: b }))),
       ])).HTML()
     );
   }
