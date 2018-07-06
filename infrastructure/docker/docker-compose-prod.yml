@@ -9,3 +9,4 @@ services:
     environment: 
       - "MONGO_URI=${MONGO_URI}"
       - "BOT_TOKEN=${BOT_TOKEN}"
+    restart: on-failure
