@@ -23,7 +23,7 @@
     "clean": "rm -rf ./dist",
     "build": "npm run clean && npm run build-ts && npm run test",
     "build-ts": "tsc && tslint -c tslint.json -p tsconfig.json",
-    "test": "jest --no-cache --forceExit --coverage --verbose",
+    "test": "jest --no-cache --forceExit --coverage --verbose --detectOpenHandles",
     "package": "npm run build && cp package.json dist/package.json && cp -R ./node_modules ./dist",
     "run-local": "DEBUG=local:a ts-node -r tsconfig-paths/register src/app-dev.ts",
     "run-local-express": "ts-node -r tsconfig-paths/register src/app.ts",
@@ -73,6 +73,7 @@
     "eslint-config-airbnb-base": "^12.1.0",
     "eslint-plugin-import": "^2.12.0",
     "jest": "^22.4.4",
+    "jest-cli": "^23.3.0",
     "ts-jest": "^22.4.6",
     "tsconfig-paths": "^3.3.2"
   }
