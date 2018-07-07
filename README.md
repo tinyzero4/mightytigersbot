@@ -9,6 +9,7 @@ These instructions will get you a copy of the project up and running on your loc
 ### Prerequisites
 
 > Telegeram Bot should be configured and *BOT_TOKEN* obtained
+
 > AWS is required for deployment, AWS CLI should be configured
 
 Local environment:
@@ -34,14 +35,13 @@ node run-script test
 ## Deployment
 
 1. Package artifact
+
 ```bash
-npm run-script package
+./build-and-deploy.sh
 ```
-2. Build docker image
-```bash
-./build-docker.sh
-```
+
 >> docker login could be required to do before operation.
+
 3. 
 
 
