@@ -40,11 +40,7 @@ node run-script test
 ./build-and-deploy.sh
 ```
 
->> docker login could be required to do before operation.
-
-3. 
-
-
+> docker login could be required to do before operation.
 
 ### Enable WebHook
 
