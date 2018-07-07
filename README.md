@@ -34,7 +34,7 @@ node run-script test
 
 ## Deployment
 
-1. Package artifact, Build Docker image, Publish Docker image, Deploy Docker image to AWS instance
+Package artifact, Build Docker image, Publish Docker image, Deploy Docker image to AWS instance
 
 ```bash
 ./build-and-deploy.sh
