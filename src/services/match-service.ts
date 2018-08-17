@@ -77,15 +77,20 @@ export class MatchService {
    */
   nextMatch(team_id: number): Promise<any> {
     return this.findLatest(team_id).then(match => {
-      if (this.shouldCompleteMatch(match, new Date())) {
+      const now = new Date();
+      if (!!match || !this.hasMatchStarted(match, now)) return Promise.resolve([match, false]);
+
+      if (this.shouldCompleteMatch(match, now)) {
         this.completeMatch(match);
-        return this.teamService.findByTeamId(team_id)
-          .then(team => !!team ? this.scheduleNextMatch(team) : undefined)
-          .then(match => [match, !!match]);
-      } else {
-        return Promise.resolve([match, false]);
       }
+      return this.teamService.findByTeamId(team_id)
+        .then(team => !!team ? this.scheduleNextMatch(team) : undefined)
+        .then(match => [match, !!match]);
     });
+  }
+
+  private hasMatchStarted(match: Match, now: Date): boolean {
+    return !match && match.date > now;
   }
 
   private shouldCompleteMatch(match: Match, now: Date): boolean {
