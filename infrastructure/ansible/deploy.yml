@@ -3,7 +3,7 @@
   gather_facts: no
   vars:
     DOCKER_COMPOSE_LOCAL_PATH: ../docker
-    DOCKER_COMPOSE_REMOTE_PATH: /tmp/mightytigers
+    DOCKER_COMPOSE_REMOTE_PATH: /home/ec2-user/mightytigers
     BOT_TOKEN: "549031160:AAFeQ8_lQqhZepFcdU8tOdR4m4vy0wWQuAc"
     MONGO_URI: !vault |
           $ANSIBLE_VAULT;1.1;AES256
@@ -23,10 +23,6 @@
           34663731653861386162333731643933316365656235623263633634663466356462616336353366
           386562346237343131656638386366373931
   tasks:
-    - name: Shutdown bot
-      docker_service:
-        project_src: "{{ DOCKER_COMPOSE_REMOTE_PATH }}"
-        state: absent
     - name: Ensure docker-compose config dir exists
       file: 
         path: "{{ DOCKER_COMPOSE_REMOTE_PATH }}"
@@ -37,6 +33,10 @@
         dest: "{{ DOCKER_COMPOSE_REMOTE_PATH }}/docker-compose.yml"
         owner: ec2-user
         mode: 0644
+    - name: Shutdown bot
+      docker_service:
+        project_src: "{{ DOCKER_COMPOSE_REMOTE_PATH }}"
+        state: absent
     - name: Ensure docker-compose .env config exists
       copy:
         content: |

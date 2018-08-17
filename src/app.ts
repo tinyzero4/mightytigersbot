@@ -25,6 +25,7 @@ app.post("/mightytigers", (req, res) => {
     .then(() => res.json({ processed: true }))
     .catch((err) => {
       res.status(400);
+      console.log(err);
       return res.json({ error: err });
     });
 });
