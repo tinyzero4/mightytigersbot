@@ -53,8 +53,10 @@ export class ConversationService {
     const buttonData = {
       id: matchData.id
     };
+    const message = ejs.render(voteTemplate, matchData);
+    if (!message.trim) return Promise.resolve();
     return showOp(
-      ejs.render(voteTemplate, matchData),
+      message,
       Extra.markup(Markup.inlineKeyboard([
         CONFIRMATION_TYPES.map(b => Markup.callbackButton(b.label, JSON.stringify({ ...buttonData, uid: shortId.generate(), c: b.value }))),
         WITH_ME_TYPES.map(b => Markup.callbackButton(b, JSON.stringify({ ...buttonData, uid: shortId.generate(), wm: b }))),
