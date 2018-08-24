@@ -54,7 +54,7 @@ bot.command("/nextmatch", ({ reply, replyWithHTML, pinChatMessage, chat }) => {
             if (created && !!match) {
               conversationService.sendMatchVoteMessage(replyWithHTML, matchService.getMatchDetails(match))
                 .then(response => conversationService.pinChatMessage(pinChatMessage, response.message_id))
-                .then(message_id => matchService.linkMessageToMatch(match._id, message_id))
+                .then(message_id => message_id && matchService.linkMessageToMatch(match._id, message_id))
                 .catch(err => handleError(err, "Ooops, error!", reply));
             }
           }).catch(err => handleError(err, "Oops, match scheduling error", reply));

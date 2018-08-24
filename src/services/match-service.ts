@@ -78,7 +78,7 @@ export class MatchService {
   nextMatch(team_id: number): Promise<any> {
     return this.findLatest(team_id).then(match => {
       const now = new Date();
-      if (!!match || !this.hasMatchStarted(match, now)) return Promise.resolve([match, false]);
+      if (!match || !this.hasMatchStarted(match, now)) return Promise.resolve([match, false]);
 
       if (this.shouldCompleteMatch(match, now)) {
         this.completeMatch(match);
@@ -90,7 +90,7 @@ export class MatchService {
   }
 
   private hasMatchStarted(match: Match, now: Date): boolean {
-    return !match && match.date > now;
+    return match && match.date < now;
   }
 
   private shouldCompleteMatch(match: Match, now: Date): boolean {
