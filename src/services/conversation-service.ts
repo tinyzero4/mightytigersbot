@@ -21,8 +21,8 @@ const voteTemplate = `|<b><%=date%></b>|Players: <strong><%=total%></strong>|
 
 export class ConversationService {
 
-  sendGreeting(replyOp) {
-    return replyOp(`*Lets Play!*`, markdown);
+  sendMatchGreeting(replyOp) {
+    return replyOp(`*Go Go Go*`, markdown);
   }
 
   sendError(replyOp, message) {

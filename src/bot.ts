@@ -35,37 +35,26 @@ const conversationService = new ConversationService();
 
 bot.telegram.getMe().then((botInfo) => bot.options.username = botInfo.username);
 
-bot.command("/newteam", ({ reply, chat }) => {
-  console.log(`[newteam] : ${new Date()}`);
-  return teamService.create(new Team(chat.title, chat.id))
-    .then(() => conversationService.sendGreeting(reply))
-    .catch(err => handleError(err, "*Team has been already registered*", reply));
-});
-
-bot.command("/nextmatch", ({ reply, replyWithHTML, pinChatMessage, chat }) => {
+bot.command("/nextmatch", ({ reply, replyWithHTML, replyWithMarkdown, pinChatMessage, chat }) => {
   console.log(`[nextmatch] : ${new Date()}`);
   return teamService.findByTeamId(chat.id)
-    .then((team) => {
-      if (!team) {
-        return conversationService.sendNoTeamRegistered(reply);
-      } else {
-        return matchService.nextMatch(chat.id)
-          .then(([match, created]) => {
-            if (created && !!match) {
-              conversationService.sendMatchVoteMessage(replyWithHTML, matchService.getMatchDetails(match))
-                .then(response => conversationService.pinChatMessage(pinChatMessage, response.message_id))
-                .then(message_id => message_id && matchService.linkMessageToMatch(match._id, message_id))
-                .catch(err => handleError(err, "Ooops, error!", reply));
-            }
-          }).catch(err => handleError(err, "Oops, match scheduling error", reply));
+    .then((team) => teamService.init(team, new Team(chat.title, chat.id)))
+    .then(() => matchService.nextMatch(chat.id))
+    .then(([match, created]) => {
+      if (created && !!match) {
+        conversationService.sendMatchVoteMessage(replyWithHTML, matchService.getMatchDetails(match))
+          .then(response => conversationService.pinChatMessage(pinChatMessage, response.message_id))
+          .then(message_id => message_id && matchService.linkMessageToMatch(match._id, message_id))
+          .then(conversationService.sendMatchGreeting(replyWithMarkdown));
       }
-    });
+    })
+    .catch(err => handleError(err, "Oops, smth wrong", reply));
 });
 
-bot.on("callback_query", ({ editMessageText, callbackQuery }) => {
+bot.on("callback_query", ({ editMessageText, callbackQuery, replyWithMarkdown}) => {
   const { id, uid, c, wm } = JSON.parse(callbackQuery.data);
   const { from } = callbackQuery;
-  const confirmRequest: any = {
+  const confirmation: any = {
     matchId: id,
     playerId: from.id,
     playerName: (from.first_name + (from.last_name || "")) || from.username,
@@ -73,14 +62,19 @@ bot.on("callback_query", ({ editMessageText, callbackQuery }) => {
     confirmation: c,
     withPlayer: parseInt(wm || 0),
   };
-  return matchService.processConfirmation(confirmRequest)
-    .then(({ match, success, processed }) => {
-      if (success && !!match) {
-        return conversationService.updateMatchVoteMessage(editMessageText, matchService.getMatchDetails(match));
-      } else {
-        console.log(`[bot] unsucessful request ${JSON.stringify(confirmRequest)} status: {success:${success}, processed:${processed}, match:${match}}`);
-        return Promise.resolve();
-      }
+
+  matchService.validateConfirmation(confirmation)
+    .then((valid) => {
+      if (!valid) return replyWithMarkdown(`@${from.username},  You don't fool me!`);
+      return matchService.processConfirmation(confirmation)
+        .then(({ match, success, processed }) => {
+          if (success && !!match) {
+            return conversationService.updateMatchVoteMessage(editMessageText, matchService.getMatchDetails(match));
+          } else {
+            console.log(`[bot] unsucessful request ${JSON.stringify(confirmation)} status: {success:${success}, processed:${processed}, match:${match}}`);
+            return Promise.resolve();
+          }
+        });
     });
 });
 
