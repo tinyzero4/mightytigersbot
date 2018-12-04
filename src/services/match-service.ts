@@ -79,10 +79,8 @@ export class MatchService {
     return this.findLatest(team_id).then(match => {
       const now = new Date();
       if (!match || !this.hasMatchStarted(match, now)) return Promise.resolve([match, false]);
+      if (this.shouldCompleteMatch(match, now)) this.completeMatch(match);
 
-      if (this.shouldCompleteMatch(match, now)) {
-        this.completeMatch(match);
-      }
       return this.teamService.findByTeamId(team_id)
         .then(team => !!team ? this.scheduleNextMatch(team) : undefined)
         .then(match => [match, !!match]);
@@ -154,12 +152,21 @@ export class MatchService {
   }
 
   processConfirmation(c: ConfirmationEvent): Promise<ConfirmationResult> {
-    return this.shouldProcessConfirmation(c)
-      .then(process => {
-        if (!process) return { processed: true };
-        return this.applyPlayerConfirmation(c)
-          .then(data => this.saveConfirmationRequest(c).then(() => data));
-      });
+    return this.shouldProcessConfirmation(c).then(process => {
+      if (!process) return { processed: true };
+      return this.applyPlayerConfirmation(c).then(data => this.saveConfirmationRequest(c).then(() => data));
+    });
+  }
+
+  validateConfirmation(c: ConfirmationEvent): Promise<boolean> {
+    if (!c.withPlayer) return Promise.resolve(true);
+    return this.find(c.matchId).then(m => { 
+      console.log(`${JSON.stringify(m.squad)}`);
+      
+      const a = m.squad[`${c.playerId}`];
+      console.log(`a=${a}`);
+      return !!m.squad[`${c.playerId}`];
+    });
   }
 
   private isConfimationToPlay(confirmation: string): boolean {

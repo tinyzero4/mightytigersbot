@@ -40,6 +40,10 @@ export class TeamService {
     return this.resolveTeam({ team_id });
   }
 
+  init(existing: Team , team: Team): Promise<Team>  {
+    return !!existing ? Promise.resolve(existing) : this.create(team).then(() => this.findByTeamId(team.team_id));
+  }
+
   create(team: Team) {
     return this.teamColl.then(c => c.insertOne(classToPlain(team), { w: 1 }));
   }
