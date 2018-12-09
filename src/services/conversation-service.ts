@@ -20,7 +20,7 @@ const voteTemplate = `|<b><%=date%></b>|Players: <strong><%=total%></strong>|
 <% }) -%>
 `;
 
-const statsTemplate = `<b>Top season appereances</b>(out of <i><%= matchesCount %></i> matches)
+const statsTemplate = `<b>Season appereances</b>(out of <i><%= matchesCount %></i> matches)
 <% players.forEach(function(ps, i) { -%>
 <i><%=i + 1%>.</i> <%= ps.name %> - <b><%= ps.appearences %></b>
 <% }) -%>
