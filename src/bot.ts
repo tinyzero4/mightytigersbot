@@ -26,7 +26,7 @@ import {
 } from "@models/team";
 
 import {
-  StatsService
+  StatsService,
 } from "@services/stats-service";
 
 console.log(`Starting bot ${BOT_TOKEN}`);
@@ -62,6 +62,7 @@ bot.command("/stats", ({ replyWithMarkdown }) => {
 });
 
 bot.on("callback_query", ({ editMessageText, callbackQuery, replyWithMarkdown }) => {
+  console.log(`[confirmation event] : ${new Date()}`);
   const { id, uid, c, wm } = JSON.parse(callbackQuery.data);
   const { from } = callbackQuery;
   const confirmation: any = {
