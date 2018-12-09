@@ -72,6 +72,18 @@ export class MatchService {
   }
 
   /**
+   * Returns all schedules macthes for given team.
+   * @param team_id team id.
+   */
+  findByTeam(team_id: any, season: number): Promise<Array<Match>> {
+    const seasonDate = moment(season);
+    return this.matchColl.then(
+      c => c.find({ team_id, createdAt: { $gte: seasonDate.startOf("year").toDate(), $lte: seasonDate.endOf("year").toDate() } })
+        .sort({ createdAt: 1 })
+        .toArray()
+    );
+  }
+  /**
    * Returns next match to play for a team. Schedules a new match if no has been already scheduled in future.
    * @param team_id team id.
    */
@@ -160,9 +172,9 @@ export class MatchService {
 
   validateConfirmation(c: ConfirmationEvent): Promise<boolean> {
     if (!c.withPlayer) return Promise.resolve(true);
-    return this.find(c.matchId).then(m => { 
+    return this.find(c.matchId).then(m => {
       console.log(`${JSON.stringify(m.squad)}`);
-      
+
       const a = m.squad[`${c.playerId}`];
       console.log(`a=${a}`);
       return !!m.squad[`${c.playerId}`];

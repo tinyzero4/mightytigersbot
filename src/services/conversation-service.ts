@@ -6,6 +6,7 @@ import { CONFIRMATION_TYPES, WITH_ME_TYPES } from "@configs/config";
 const Extra = (Telegraf as any).Extra;
 const Markup = (Telegraf as any).Markup;
 const markdown = Extra.markdown();
+const html = Extra.HTML();
 
 const voteTemplate = `|<b><%=date%></b>|Players: <strong><%=total%></strong>|
 <% confirmationTypes.forEach(function(type) { %>
@@ -19,10 +20,20 @@ const voteTemplate = `|<b><%=date%></b>|Players: <strong><%=total%></strong>|
 <% }) -%>
 `;
 
+const statsTemplate = `<b>Top season appereances</b>(out of <i><%= matchesCount %></i> matches)
+<% players.forEach(function(ps, i) { -%>
+<i><%=i + 1%>.</i> <%= ps.name %> - <b><%= ps.appearences %></b>
+<% }) -%>
+`;
+
 export class ConversationService {
 
   sendMatchGreeting(replyOp) {
     return replyOp(`*Go Go Go*`, markdown);
+  }
+
+  sendStats(replyOp, stats) {
+    return replyOp(ejs.render(statsTemplate, stats), html);
   }
 
   sendError(replyOp, message) {
