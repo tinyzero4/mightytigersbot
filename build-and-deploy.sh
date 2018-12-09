@@ -1,4 +1,5 @@
 #!/bin/sh
+set -e
 
 # Rebuild project 
 npm run-script package

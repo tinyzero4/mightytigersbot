@@ -25,12 +25,17 @@ import {
   Team,
 } from "@models/team";
 
+import {
+  StatsService
+} from "@services/stats-service";
+
 console.log(`Starting bot ${BOT_TOKEN}`);
 
 const bot: any = new Telegraf(BOT_TOKEN);
 const scheduleService = new SchedulerService();
 const teamService = new TeamService();
 const matchService = new MatchService(scheduleService, teamService);
+const statsService = new StatsService(matchService);
 const conversationService = new ConversationService();
 
 bot.telegram.getMe().then((botInfo) => bot.options.username = botInfo.username);
@@ -51,7 +56,12 @@ bot.command("/nextmatch", ({ reply, replyWithHTML, replyWithMarkdown, pinChatMes
     .catch(err => handleError(err, "Oops, smth wrong", reply));
 });
 
-bot.on("callback_query", ({ editMessageText, callbackQuery, replyWithMarkdown}) => {
+bot.command("/stats", ({ replyWithMarkdown }) => {
+  console.log(`[stats] : ${new Date()}`);
+  return statsService.getStats(-1001176322211).then(stats => conversationService.sendStats(replyWithMarkdown, stats));
+});
+
+bot.on("callback_query", ({ editMessageText, callbackQuery, replyWithMarkdown }) => {
   const { id, uid, c, wm } = JSON.parse(callbackQuery.data);
   const { from } = callbackQuery;
   const confirmation: any = {
