@@ -33,7 +33,7 @@ console.log(`Starting bot ${BOT_TOKEN}`);
 
 const bot: any = new Telegraf(BOT_TOKEN);
 const scheduleService = new SchedulerService();
-const teamService = new TeamService();
+const teamService = new TeamService(scheduleService);
 const matchService = new MatchService(scheduleService, teamService);
 const statsService = new StatsService(matchService);
 const conversationService = new ConversationService();
@@ -41,7 +41,7 @@ const conversationService = new ConversationService();
 bot.telegram.getMe().then((botInfo) => bot.options.username = botInfo.username);
 
 bot.command("/nextmatch", ({ reply, replyWithHTML, replyWithMarkdown, pinChatMessage, chat }) => {
-  console.log(`[nextmatch] : ${new Date()}`);
+  console.log(`[nextmatch-event][${chat.id}-${chat.title}] : ${new Date()}`);
   return teamService.findByTeamId(chat.id)
     .then((team) => teamService.init(team, new Team(chat.title, chat.id)))
     .then(() => matchService.nextMatch(chat.id))
@@ -56,9 +56,17 @@ bot.command("/nextmatch", ({ reply, replyWithHTML, replyWithMarkdown, pinChatMes
     .catch(err => handleError(err, "Oops, smth wrong", reply));
 });
 
-bot.command("/stats", ({ replyWithMarkdown }) => {
-  console.log(`[stats] : ${new Date()}`);
-  return statsService.getStats(-1001176322211).then(stats => conversationService.sendStats(replyWithMarkdown, stats));
+bot.command("/stats", ({ replyWithMarkdown, chat }) => {
+  console.log(`[stats-event][${chat.id}-${chat.title}] : ${new Date()}`);
+  return statsService.getStats(chat.id).then(stats => conversationService.sendStats(replyWithMarkdown, stats));
+});
+
+bot.command("/schedule", ({ replyWithMarkdown, chat, message }) => {
+  console.log(`[schedule-event][${chat.id}-${chat.title}] : ${new Date()}`);
+  return teamService.findByTeamId(chat.id)
+    .then(team => teamService.init(team, new Team(chat.title, chat.id)))
+    .then(team => teamService.setSchedule(team, message))
+    .then(res => conversationService.sendMessage(replyWithMarkdown, res ? "*** Schedule was updated ***" : "Invalid schedule definition"));
 });
 
 bot.on("callback_query", ({ editMessageText, callbackQuery, replyWithMarkdown }) => {
