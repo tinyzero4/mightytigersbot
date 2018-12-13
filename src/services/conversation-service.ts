@@ -36,6 +36,10 @@ export class ConversationService {
     return replyOp(ejs.render(statsTemplate, stats), html);
   }
 
+  sendMessage(replyOp, message) {
+    return replyOp(message, markdown);
+  }
+
   sendError(replyOp, message) {
     return replyOp(message || "*Ooooops*, I'm sorry, something went wrong. Try again later.", markdown);
   }

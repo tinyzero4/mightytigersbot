@@ -17,6 +17,13 @@ interface Players {
     [propName: string]: string;
 }
 
+enum MatchStatus {
+    SCHEDULED,
+    IN_PROGRESS,
+    INVALID,
+    FINISHED
+}
+
 export interface Match {
     _id?: ObjectId;
     team_id: number;
@@ -27,4 +34,5 @@ export interface Match {
     players?: Players;
     completed?: boolean;
     message_id?: number;
+    status?: MatchStatus;
 }

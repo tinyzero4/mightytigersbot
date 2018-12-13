@@ -4,7 +4,7 @@ import { DEFAULT_SCHEDULE } from "@configs/config";
 
 export class MatchDay {
     day: number;
-    time: string;
+    time: string;  
 }
 
 export class Team {
