@@ -1,13 +1,30 @@
 import moment from "moment-timezone";
 import shortId from "shortid";
 import _ from "lodash";
-import { Collection, ObjectID, InsertOneWriteOpResult } from "mongodb";
-import { Match } from "@models/match";
-import { Team } from "@models/team";
-import { SchedulerService } from "@services/scheduler-service";
-import { CONFIRMATION_TYPES } from "@configs/config";
-import { TeamService } from "@services/team-service";
-import { db } from "@db/mongo";
+import {
+  Collection,
+  ObjectID,
+  InsertOneWriteOpResult
+} from "mongodb";
+import {
+  Team,
+} from "@models/team";
+import {
+  SchedulerService,
+} from "@services/scheduler-service";
+import {
+  CONFIRMATION_TYPES,
+} from "@configs/config";
+import {
+  TeamService,
+} from "@services/team-service";
+import {
+  db,
+} from "@db/mongo";
+import {
+  Match,
+  MatchStatus,
+} from "@models/match";
 
 const matchesColl = "matches";
 const updatesColl = "updates";
@@ -90,10 +107,12 @@ export class MatchService {
   nextMatch(team_id: number): Promise<any> {
     return this.findLatest(team_id).then(match => {
       const now = new Date();
-      if (!match || !this.hasMatchStarted(match, now)) return Promise.resolve([match, false]);
-      if (this.shouldCompleteMatch(match, now)) this.completeMatch(match);
+      if (!!match) {
+        if (match.status == MatchStatus.SCHEDULED && !this.hasMatchStarted(match, now)) return Promise.resolve([match, false]);
+        else this.completeMatch(match);
+      }
 
-      return this.teamService.findByTeamId(team_id)
+      return this.teamService.getTeam(team_id)
         .then(team => !!team ? this.scheduleNextMatch(team) : undefined)
         .then(match => [match, !!match]);
     });
@@ -103,17 +122,13 @@ export class MatchService {
     return match && match.date < now;
   }
 
-  private shouldCompleteMatch(match: Match, now: Date): boolean {
-    return !match || !match.completed && match.date < now;
-  }
-
   private completeMatch(match: Match): void {
     if (match && !match.completed) this.complete(match._id);
   }
 
   private scheduleNextMatch(team: Team): Promise<Match> {
     const date = this.scheduleService.nextMatchDate(team, new Date());
-    return this.create({ date, team_id: team.team_id, createdAt: new Date(), squad: {} }).then(({ ops }) => ops[0]);
+    return this.create({ date, team_id: team.team_id, createdAt: new Date(), squad: {}, status: MatchStatus.SCHEDULED }).then(({ ops }) => ops[0]);
   }
 
   /**
@@ -158,9 +173,9 @@ export class MatchService {
     return this.matchColl.then(c => c.findOneAndUpdate({ _id }, { $set: { message_id } }).then(() => message_id));
   }
 
-  complete(_id: any) {
+  complete(_id: any, status: MatchStatus = MatchStatus.COMPLETED) {
     if (typeof _id !== "object") _id = new ObjectID(_id);
-    return this.matchColl.then(c => c.findOneAndUpdate({ _id }, { $set: { completed: true } }));
+    return this.matchColl.then(c => c.findOneAndUpdate({ _id }, { $set: { completed: true, status } }));
   }
 
   processConfirmation(c: ConfirmationEvent): Promise<ConfirmationResult> {
@@ -171,13 +186,17 @@ export class MatchService {
   }
 
   validateConfirmation(c: ConfirmationEvent): Promise<boolean> {
-    if (!c.withPlayer) return Promise.resolve(true);
     return this.find(c.matchId).then(m => {
-      console.log(`${JSON.stringify(m.squad)}`);
+      if (!m || m.completed || this.hasMatchStarted(m, new Date())) return false;
+      return c.withPlayer ? !!m.squad[`${c.playerId}`] : true;
+    });
+  }
 
-      const a = m.squad[`${c.playerId}`];
-      console.log(`a=${a}`);
-      return !!m.squad[`${c.playerId}`];
+  cancelObsoleteMatches(team_id): Promise<boolean> {
+    return this.findLatest(team_id).then(match => {
+      if (match && !match.completed && !this.hasMatchStarted(match, new Date())) 
+        return this.complete(match._id, MatchStatus.CANCELLED).then(() => Promise.resolve(true));
+      return Promise.resolve(false);
     });
   }
 
@@ -229,6 +248,6 @@ export class MatchService {
   }
 
   private create(match: Match): Promise<InsertOneWriteOpResult> {
-    return this.matchColl.then(c => c.insert({ ...match, createdAt: new Date(), squad: {}, withMe: {}, completed: false }, { w: 1 }));
+    return this.matchColl.then(c => c.insertOne({ ...match, createdAt: new Date(), squad: {}, withMe: {}, completed: false }, { w: 1 }));
   }
 }

@@ -6,14 +6,14 @@ import {
   Team,
 } from "@models/team";
 import {
-  classToPlain, Transform,
+  classToPlain,
 } from "class-transformer";
 import {
   db,
 } from "@db/mongo";
 import {
   SchedulerService,
-} from "@services/scheduler-service"
+} from "@services/scheduler-service";
 
 const teamsCollection = "teams";
 
@@ -48,12 +48,12 @@ export class TeamService {
    * Performs lookup by team id.` Team id is represented as telegram chat id.
    * @param team_id team id
    */
-  findByTeamId(team_id: number): Promise<Team | null> {
+  getTeam(team_id: number): Promise<Team | null> {
     return this.resolveTeam({ team_id });
   }
 
   init(existing: Team, team: Team): Promise<Team> {
-    return !!existing ? Promise.resolve(existing) : this.create(team).then(() => this.findByTeamId(team.team_id));
+    return !!existing ? Promise.resolve(existing) : this.create(team).then(() => this.getTeam(team.team_id));
   }
 
   create(team: Team) {
@@ -63,9 +63,7 @@ export class TeamService {
   setSchedule(team: Team, scheduleDef: string): Promise<Boolean> {
     const schedule = this.schedulerService.parseSchedule(scheduleDef);
     if (!schedule) return Promise.resolve(false);
-
-    return this.teamColl.then(c => c.updateOne({ team_id: team.team_id }, { $set: { schedule: team.schedule } }))
-      .then(r => Promise.resolve(r.result.ok == 1))
+    return this.teamColl.then(c => c.updateOne({ team_id: team.team_id }, { $set: { schedule: schedule } }))
+      .then(r => Promise.resolve(r.result.ok == 1));
   }
-
 }

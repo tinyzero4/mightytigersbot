@@ -42,7 +42,7 @@ bot.telegram.getMe().then((botInfo) => bot.options.username = botInfo.username);
 
 bot.command("/nextmatch", ({ reply, replyWithHTML, replyWithMarkdown, pinChatMessage, chat }) => {
   console.log(`[nextmatch-event][${chat.id}-${chat.title}] : ${new Date()}`);
-  return teamService.findByTeamId(chat.id)
+  return teamService.getTeam(chat.id)
     .then((team) => teamService.init(team, new Team(chat.title, chat.id)))
     .then(() => matchService.nextMatch(chat.id))
     .then(([match, created]) => {
@@ -53,20 +53,22 @@ bot.command("/nextmatch", ({ reply, replyWithHTML, replyWithMarkdown, pinChatMes
           .then(conversationService.sendMatchGreeting(replyWithMarkdown));
       }
     })
-    .catch(err => handleError(err, "Oops, smth wrong", reply));
+    .catch(err => handleError(err, "Oops, smth went wrong", reply));
 });
 
-bot.command("/stats", ({ replyWithMarkdown, chat }) => {
+bot.command("/seasonstats", ({ replyWithMarkdown, chat }) => {
   console.log(`[stats-event][${chat.id}-${chat.title}] : ${new Date()}`);
   return statsService.getStats(chat.id).then(stats => conversationService.sendStats(replyWithMarkdown, stats));
 });
 
-bot.command("/schedule", ({ replyWithMarkdown, chat, message }) => {
-  console.log(`[schedule-event][${chat.id}-${chat.title}] : ${new Date()}`);
-  return teamService.findByTeamId(chat.id)
+bot.command("/setschedule", ({ replyWithMarkdown, chat, message }) => {
+  console.log(`[schedule-event][${chat.id}-${chat.title}] ${JSON.stringify(message.text)} : ${new Date()}`);
+  return teamService.getTeam(chat.id)
     .then(team => teamService.init(team, new Team(chat.title, chat.id)))
-    .then(team => teamService.setSchedule(team, message))
-    .then(res => conversationService.sendMessage(replyWithMarkdown, res ? "*** Schedule was updated ***" : "Invalid schedule definition"));
+    .then(team => teamService.setSchedule(team, message.text))
+    .then(res => conversationService.sendMessage(replyWithMarkdown, res ? "*** Team schedule was updated. Run `nextmatch` to schedule new match***" : "Invalid schedule definition"))
+    .then(() => matchService.cancelObsoleteMatches(chat.id))
+    .catch(err => handleError(err, "Oops, smth went wrong", replyWithMarkdown));
 });
 
 bot.on("callback_query", ({ editMessageText, callbackQuery, replyWithMarkdown }) => {
