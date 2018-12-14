@@ -1,38 +1,44 @@
 import { ObjectId } from "bson";
 
 interface Confirmation {
-    confirmation: string;
-    confirmationDate: Date;
+  confirmation: string;
+  confirmationDate: Date;
 }
 
 interface Squad {
-    [propName: string]: Confirmation;
+  [propName: string]: Confirmation;
 }
 
 interface WithMe {
-    [propName: string]: number;
+  [propName: string]: number;
 }
 
 interface Players {
-    [propName: string]: string;
+  [propName: string]: string;
 }
 
 enum MatchStatus {
-    SCHEDULED,
-    IN_PROGRESS,
-    INVALID,
-    FINISHED
+  SCHEDULED,
+  IN_PROGRESS,
+  CANCELLED,
+  INVALID,
+  COMPLETED
 }
 
-export interface Match {
-    _id?: ObjectId;
-    team_id: number;
-    createdAt: Date;
-    date: Date;
-    squad: Squad;
-    withMe?: WithMe;
-    players?: Players;
-    completed?: boolean;
-    message_id?: number;
-    status?: MatchStatus;
+interface Match {
+  _id?: ObjectId;
+  team_id: number;
+  createdAt: Date;
+  date: Date;
+  squad: Squad;
+  withMe?: WithMe;
+  players?: Players;
+  completed?: boolean;
+  message_id?: number;
+  status?: MatchStatus;
 }
+
+export {
+  Match,
+  MatchStatus,
+};
