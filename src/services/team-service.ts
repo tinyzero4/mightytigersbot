@@ -62,7 +62,7 @@ export class TeamService {
 
   setSchedule(team: Team, scheduleDef: string): Promise<Boolean> {
     const schedule = this.schedulerService.parseSchedule(scheduleDef);
-    if (!schedule) return Promise.resolve(false);
+    if (!schedule || !schedule.length) return Promise.resolve(false);
     return this.teamColl.then(c => c.updateOne({ team_id: team.team_id }, { $set: { schedule: schedule } }))
       .then(r => Promise.resolve(r.result.ok == 1));
   }

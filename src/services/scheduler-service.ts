@@ -10,7 +10,10 @@ export class SchedulerService {
 
   parseSchedule(schedule: String): MatchDay[] {
     if (!schedule) return [];
-    return schedule.substring(schedule.lastIndexOf(" ")).trim().split(",")
+    const definition = schedule.substring(schedule.lastIndexOf(" ")).trim();
+    const prefix = schedule.substring(0, schedule.lastIndexOf(" ")).trim();
+    if (prefix.indexOf("top-secret-token") == -1) return [];
+    return definition.split(",")
       .map(def => moment(def, "E@HH:mm"))
       .filter(m => m.isValid())
       .map(m => {

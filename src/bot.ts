@@ -66,8 +66,10 @@ bot.command("/setschedule", ({ replyWithMarkdown, chat, message }) => {
   return teamService.getTeam(chat.id)
     .then(team => teamService.init(team, new Team(chat.title, chat.id)))
     .then(team => teamService.setSchedule(team, message.text))
-    .then(res => conversationService.sendMessage(replyWithMarkdown, res ? "*** Team schedule was updated. Run `nextmatch` to schedule new match***" : "Invalid schedule definition"))
-    .then(() => matchService.cancelObsoleteMatches(chat.id))
+    .then(res => {
+      if (res) return conversationService.sendMessage(replyWithMarkdown, res ? "*** Team schedule was updated. Run `nextmatch` to schedule new match***" : "Invalid schedule definition")
+        .then(() => matchService.cancelObsoleteMatches(chat.id));
+    })
     .catch(err => handleError(err, "Oops, smth went wrong", replyWithMarkdown));
 });
 
@@ -86,7 +88,7 @@ bot.on("callback_query", ({ editMessageText, callbackQuery, replyWithMarkdown })
 
   matchService.validateConfirmation(confirmation)
     .then((valid) => {
-      if (!valid) return replyWithMarkdown(`@${from.username},  You don't fool me!`);
+      if (!valid) return replyWithMarkdown(`@${confirmation.playerName},  You don't fool me!`);
       return matchService.processConfirmation(confirmation)
         .then(({ match, success, processed }) => {
           if (success && !!match) {
