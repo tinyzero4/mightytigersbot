@@ -9,7 +9,7 @@ const app = express();
 app.use(express.json());
 
 app.post("/event", (req, res) => {
-  console.log(`[handle event]: ${new Date()}`);
+  console.log(`[handle event]: ${new Date()}:${JSON.stringify(req.body)}`);
   bot.handleUpdate(req.body)
     .then(() => res.json({ processed: true }))
     .catch((err) => {

@@ -8,6 +8,6 @@ npm run-script package
 ./build-docker.sh
 
 # Deploy latest docker version to prod
-cd infrastructure && ./deploy.sh
+# TODO 
 
 cd -

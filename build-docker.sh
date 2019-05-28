@@ -1,5 +1,5 @@
 #!/bin/sh
 
-docker build -t breedish/mightytigersbot:latest .
+docker build -t gcr.io/ses-voting/ses-voting:latest .
 
-docker push breedish/mightytigersbot:latest
+docker push gcr.io/ses-voting/ses-voting:latest
