@@ -44,6 +44,8 @@ spec:
                configMapKeyRef:
                 name: ses-voting
                 key: BOT_TOKEN
+            - name: COMMIT_ID
+              value: "1"
 ---
 apiVersion: v1
 kind: Service
@@ -75,6 +77,8 @@ metadata:
   annotations:
     kubernetes.io/ingress.global-static-ip-name: ses-voting
 spec:
+  tls:
+  - secretName: ses-tls-secret
   backend:
     serviceName: ses-voting
     servicePort: 80
