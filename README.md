@@ -10,14 +10,13 @@ These instructions will get you a copy of the project up and running on your loc
 
 > Telegeram Bot should be configured and *BOT_TOKEN* obtained
 
-> AWS is required for deployment, AWS CLI should be configured
+> GCloud + K8S
 
 Local environment:
 
 - node, typescript
 - docker, docker-compose
-- ansible via pip (+ boto)
-- terraform
+- gcloud + kubectl
 
 ## Development
 
@@ -51,18 +50,6 @@ curl -X POST \
   -F url={BOT_ENDPOINT} \
   -F certificate=@path/to/certificate.pem
 ```
-
-## Contributing
-
-Welcome!
-
-## Versioning
-
-We use [SemVer](http://semver.org/) for versioning.
-
-## Authors
-
-- breedish - initial work
 
 ## License
 
