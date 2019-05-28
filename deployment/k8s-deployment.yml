@@ -35,11 +35,15 @@ spec:
             failureThreshold: 1
           env:
             - name: MONGO_URI
-              value: "mongodb://tigers:tigers123@tigers-shard-00-00-yyyc0.mongodb.net:27017,tigers-shard-00-01-yyyc0.mongodb.net:27017,tigers-shard-00-02-yyyc0.mongodb.net:27017/test?ssl=true&replicaSet=tigers-shard-0&authSource=admin"
+              valueFrom:
+               configMapKeyRef:
+                name: ses-voting
+                key: MONGO_URI
             - name: BOT_TOKEN
-              value: "549031160:AAGhKf5JNWguQZPqR4y8NrjFHJm4Axp8mLQ"
-            - name: TEST
-              value: "true"
+              valueFrom:
+               configMapKeyRef:
+                name: ses-voting
+                key: BOT_TOKEN
 ---
 apiVersion: v1
 kind: Service
@@ -48,11 +52,10 @@ metadata:
   labels:
     app: bot
 spec:
-  type: NodePort
+  type: LoadBalancer
   ports:
-    - port: 3000
+    - port: 80
       targetPort: 3000
-      nodePort: 30001
   selector:
     app: bot
 ---
@@ -74,5 +77,4 @@ metadata:
 spec:
   backend:
     serviceName: ses-voting
-    servicePort: 3000
-        
+    servicePort: 80
