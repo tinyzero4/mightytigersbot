@@ -45,7 +45,7 @@ spec:
                 name: ses-voting
                 key: BOT_TOKEN
             - name: COMMIT_ID
-              value: "1"
+              value: "COMMITID"
 ---
 apiVersion: v1
 kind: Service
