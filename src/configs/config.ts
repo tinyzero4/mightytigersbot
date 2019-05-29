@@ -10,7 +10,7 @@ export const DEFAULT_SCHEDULE = [
 
 export const CONFIRMATION_TYPES = [
   { value: "⚽", label: "⚽[PLAY]", going: true },
-  { value: "💩", label: "💩[SLEEP]", going: false },
+  { value: "🍷", label: "🍷[SLEEP]", going: false },
   { value: "🤔", label: "🤔[?]", going: false },
 ];
 
