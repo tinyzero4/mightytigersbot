@@ -43,9 +43,13 @@ bot.telegram.getMe().then((botInfo) => bot.options.username = botInfo.username);
 bot.command("/nextmatch", ({ reply, replyWithHTML, replyWithMarkdown, pinChatMessage, chat }) => {
   console.log(`[nextmatch-event][${chat.id}-${chat.title}] : ${new Date()}`);
   return teamService.getTeam(chat.id)
-    .then((team) => teamService.init(team, new Team(chat.title, chat.id)))
+    .then((team) => {
+      console.log(`===team ${JSON.stringify(team)}`);
+      return teamService.init(team, new Team(chat.title, chat.id));
+    })
     .then(() => matchService.nextMatch(chat.id))
     .then(([match, created]) => {
+      console.log(`===created ${created} ${JSON.stringify(match)}`);
       if (created && !!match) {
         conversationService.sendMatchVoteMessage(replyWithHTML, matchService.getMatchDetails(match))
           .then(response => conversationService.pinChatMessage(pinChatMessage, response.message_id))
@@ -101,6 +105,7 @@ bot.on("callback_query", ({ editMessageText, callbackQuery, replyWithMarkdown })
 
 const handleError = (err, msg, reply) => {
   console.error(`[bot] ${msg}. Reason: ${err}`);
+  console.log(`[bot] ${msg}. Reason: ${err}`);
   return conversationService.sendError(reply, msg);
 };
 
