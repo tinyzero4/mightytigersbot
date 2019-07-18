@@ -80,7 +80,7 @@ bot.on("message", ({message, replyWithMarkdown}) => {
   if (text.toLowerCase().trim().includes("красава")) {
     return replyWithMarkdown(`[${from.username}](tg://user?id=${from.id},  Хуява!`);
   }
-})
+});
 
 bot.on("callback_query", ({ editMessageText, callbackQuery, replyWithMarkdown }) => {
   console.log(`[confirmation event] : ${new Date()}`);
