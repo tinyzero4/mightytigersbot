@@ -14,7 +14,7 @@ app.post("/event", (req, res) => {
     .then(() => res.json({ processed: true }))
     .catch((err) => {
       res.status(400);
-      console.log(`error while processing request: ${err}`);
+      console.log(`!!error while processing request: ${err}`);
       return res.json({ error: err });
     });
 });
