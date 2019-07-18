@@ -102,7 +102,8 @@ bot.on("callback_query", ({ editMessageText, callbackQuery, replyWithMarkdown })
 
   matchService.validateConfirmation(confirmation)
     .then((valid) => {
-      if (!valid) return replyWithMarkdown(`@${from.username},  You don't fool me!`);
+      const user_mention = `[${from.username}](tg://user?id=${from.id})`;
+      if (!valid) return replyWithMarkdown(`${user_mention},  You don't fool me!`);
       return matchService.processConfirmation(confirmation)
         .then(({ match, success, processed }) => {
           if (success && !!match) {
