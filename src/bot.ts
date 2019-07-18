@@ -77,8 +77,13 @@ bot.command("/setschedule", ({ replyWithMarkdown, chat, message }) => {
 
 bot.on("message", ({message, replyWithMarkdown}) => {
   const {from, text} = message;
+  const user_mention = `[${from.username}](tg://user?id=${from.id})`;
   if (text.toLowerCase().trim().includes("красава")) {
-    return replyWithMarkdown(`[${from.username}](tg://user?id=${from.id}),  Хуява!`);
+    return replyWithMarkdown(`${user_mention}, Хуява`);
+  } else if (text.toLowerCase().trim().includes("плюсы")) {
+    return replyWithMarkdown(`Нужны плюсы`);
+  } else if (text.toLowerCase().trim().includes("хуй")) {
+    return replyWithMarkdown(`${user_mention}, Сам ты хуй`);
   }
 });
 
