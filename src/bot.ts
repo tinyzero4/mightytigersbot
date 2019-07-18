@@ -79,7 +79,7 @@ bot.on("message", ({message, replyWithMarkdown}) => {
   const {from, text} = message;
   const user_mention = `[${from.username}](tg://user?id=${from.id})`;
   if (text.toLowerCase().trim().includes("красава")) {
-    return replyWithMarkdown(`${user_mention}, Хуява`);
+    return replyWithMarkdown(`${user_mention}, красава!`);
   } else if (text.toLowerCase().trim().includes("плюсы")) {
     return replyWithMarkdown(`Нужны плюсы`);
   } else if (text.toLowerCase().trim().includes("хуй")) {
