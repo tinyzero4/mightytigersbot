@@ -3,6 +3,7 @@ import _ from "lodash";
 import { MatchService } from "@services/match-service";
 import { CONFIRMATION_TYPES, MATCH_MIN_PLAYERS } from "@configs/config";
 import { TeamService } from '@services/team-service';
+import { Player } from '@models/team';
 
 class SeasonStats {
   players: Array<PlayerStat>;
@@ -37,7 +38,8 @@ export class StatsService {
           if (matchDetails.total < MATCH_MIN_PLAYERS) return;
           matchDetails.confirmationsByType[CONFIRMATION_TYPES[0].value].forEach(c => {
             const appearences: number = stats[c.pId] || 0;
-            const karma = team.players[c.pId].karma || 0;
+            const player: Player = team.players[c.pId];
+            const karma = player ? player.karma || 0 : 0;
             stats[c.pId] = appearences + 1 + karma;
             players[c.pId] = match.players[c.pId];
           });
