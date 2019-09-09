@@ -18,3 +18,5 @@ export const WITH_ME_TYPES = [
   "+1",
   "-1",
 ];
+
+export const MATCH_MIN_PLAYERS = 8;
