@@ -16,7 +16,6 @@ import {
 } from "@services/scheduler-service";
 
 const teamsCollection = "teams";
-
 export class TeamService {
 
   private teamColl: Promise<Collection>;

@@ -4,7 +4,10 @@ import { DEFAULT_SCHEDULE } from "@configs/config";
 
 export class MatchDay {
     day: number;
-    time: string;  
+    time: string;
+}
+export interface Player {
+    karma?: number
 }
 
 export class Team {
@@ -14,6 +17,7 @@ export class Team {
     public created: Date;
     @Type(() => MatchDay)
     public schedule: MatchDay[];
+    public players?: Record<string, Player>;
 
     constructor(name: string, team_id: number, schedule: MatchDay[] = DEFAULT_SCHEDULE) {
         this.name = name;
