@@ -6,7 +6,7 @@ export class MatchDay {
     day: number;
     time: string;
 }
-export interface Player {
+export interface PlayerProfile {
     karma?: number
 }
 
@@ -17,7 +17,7 @@ export class Team {
     public created: Date;
     @Type(() => MatchDay)
     public schedule: MatchDay[];
-    public players?: Record<string, Player>;
+    public players?: Record<string, PlayerProfile>;
 
     constructor(name: string, team_id: number, schedule: MatchDay[] = DEFAULT_SCHEDULE) {
         this.name = name;
