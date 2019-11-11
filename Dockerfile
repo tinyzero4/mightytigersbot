@@ -4,4 +4,5 @@ LABEL maintainer="breedish@gmail.com"
 WORKDIR /opt/mightytigers
 
 COPY dist /opt/mightytigers
+COPY deployment/cert /opt/mightytigers
 CMD ["npm", "run-script", "run-dist"]

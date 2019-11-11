@@ -7,7 +7,7 @@ export class MatchDay {
     time: string;
 }
 export interface PlayerProfile {
-    karma?: number
+    karma?: number;
 }
 
 export class Team {
