@@ -35,7 +35,7 @@ const bot: any = new Telegraf(BOT_TOKEN);
 const scheduleService = new SchedulerService();
 const teamService = new TeamService(scheduleService);
 const matchService = new MatchService(scheduleService, teamService);
-const statsService = new StatsService(matchService);
+const statsService = new StatsService(matchService, teamService);
 const conversationService = new ConversationService();
 
 bot.telegram.getMe().then((botInfo) => bot.options.username = botInfo.username);
@@ -44,12 +44,10 @@ bot.command("/nextmatch", ({ reply, replyWithHTML, replyWithMarkdown, pinChatMes
   console.log(`[nextmatch-event][${chat.id}-${chat.title}] : ${new Date()}`);
   return teamService.getTeam(chat.id)
     .then((team) => {
-      console.log(`===team ${JSON.stringify(team)}`);
       return teamService.init(team, new Team(chat.title, chat.id));
     })
     .then(() => matchService.nextMatch(chat.id))
     .then(([match, created]) => {
-      console.log(`===created ${created} ${JSON.stringify(match)}`);
       if (created && !!match) {
         conversationService.sendMatchVoteMessage(replyWithHTML, matchService.getMatchDetails(match))
           .then(response => conversationService.pinChatMessage(pinChatMessage, response.message_id))
@@ -77,7 +75,7 @@ bot.command("/setschedule", ({ replyWithMarkdown, chat, message }) => {
 
 bot.on("message", ({message, replyWithMarkdown}) => {
   const {from, text} = message;
-  const user_mention = `[${from.username}](tg://user?id=${from.id})`;
+  const user_mention = `[${(from.first_name + (from.last_name || "")) || from.username}](tg://user?id=${from.id})`;
   if (!text) return;
   if (text.toLowerCase().trim().includes("красава")) {
     return replyWithMarkdown(`${user_mention}, красава!`);
