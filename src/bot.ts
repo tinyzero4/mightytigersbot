@@ -89,7 +89,7 @@ bot.on("message", ({message, replyWithMarkdown}) => {
 });
 
 bot.on("callback_query", async ({editMessageText, callbackQuery, replyWithMarkdown}) => {
-    console.log(`[confirmation-event] : ${new Date()}`);
+    console.log(`[confirmation-event] : ${new Date()} ${callbackQuery.from.username}`);
     const {id, uid, c, wm} = JSON.parse(callbackQuery.data);
     const {from} = callbackQuery;
 
