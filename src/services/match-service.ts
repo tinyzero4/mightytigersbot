@@ -209,7 +209,7 @@ export class MatchService {
     }
 
     private saveConfirmationRequest(event: ConfirmationEvent): Promise<any> {
-        return this.updatesColl.then(c => c.insert({
+        return this.updatesColl.then(c => c.insertOne({
             _id: `${event.confirmationId}:${event.matchId}:${event.playerId}`,
             processed: new Date()
         }).then(r => r.ops[0]));

@@ -14,7 +14,6 @@ const app = express();
 app.use(express.json());
 
 app.post("/event", async (req, res) => {
-    console.log(`[event]: ${new Date()}:${JSON.stringify(req.body)}`);
     try {
         await bot.handleUpdate(req.body);
         res.json({processed: true});
