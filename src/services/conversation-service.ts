@@ -26,56 +26,64 @@ const statsTemplate = `<b>Season appereances</b>(out of <i><%= matchesCount %></
 <% }) -%>
 `;
 
-export class ConversationService {
+export default class ConversationService {
 
-  sendMatchGreeting(replyOp) {
-    return replyOp(`*Go Go Go*`, markdown);
-  }
+    static sendMatchGreeting(replyOp) {
+        return replyOp(`*Go Go Go*`, markdown);
+    }
 
-  sendStats(replyOp, stats) {
-    return replyOp(ejs.render(statsTemplate, stats), html);
-  }
+    static sendStats(replyOp, stats) {
+        return replyOp(ejs.render(statsTemplate, stats), html);
+    }
 
-  sendMessage(replyOp, message) {
-    return replyOp(message, markdown);
-  }
+    static sendMessage(replyOp, message) {
+        return replyOp(message, markdown);
+    }
 
-  sendError(replyOp, message) {
-    return replyOp(message || "*Ooooops*, I'm sorry, something went wrong. Try again later.", markdown);
-  }
+    static sendError(replyOp, message) {
+        return replyOp(message || "*Ooooops*, I'm sorry, something went wrong. Try again later.", markdown);
+    }
 
-  sendNoTeamRegistered(replyOp) {
-    return replyOp("*Please register team!*", markdown);
-  }
+    static sendNoTeamRegistered(replyOp) {
+        return replyOp("*Please register team!*", markdown);
+    }
 
-  sendMatchVoteMessage(showOp, matchData) {
-    return this.showVoteMessage(showOp, matchData);
-  }
+    sendMatchVoteMessage(showOp, matchData) {
+        return this.showVoteMessage(showOp, matchData);
+    }
 
-  updateMatchVoteMessage(editMessageTextOp, matchData) {
-    return this.showVoteMessage(editMessageTextOp, matchData);
-  }
+    updateMatchVoteMessage(editMessageTextOp, matchData) {
+        return this.showVoteMessage(editMessageTextOp, matchData);
+    }
 
-  pinChatMessage(pinChatMessageOp, message_id) {
-    return pinChatMessageOp(message_id).then(() => message_id);
-  }
+    pinChatMessage(pinChatMessageOp, message_id) {
+        return pinChatMessageOp(message_id).then(() => message_id);
+    }
 
-  /**
-   * Used to build data required for rendering vote message along with action buttons groups.
-   * Each button can send up to 64Kb of data.
-   */
-  private showVoteMessage(showOp, matchData) {
-    const buttonData = {
-      id: matchData.id
-    };
-    const message = ejs.render(voteTemplate, matchData);
-    if (!message.trim) return Promise.resolve();
-    return showOp(
-      message,
-      Extra.markup(Markup.inlineKeyboard([
-        CONFIRMATION_TYPES.map(b => Markup.callbackButton(b.label, JSON.stringify({ ...buttonData, uid: shortId.generate(), c: b.value }))),
-        WITH_ME_TYPES.map(b => Markup.callbackButton(b, JSON.stringify({ ...buttonData, uid: shortId.generate(), wm: b }))),
-      ])).HTML()
-    );
-  }
+    /**
+     * Used to build data required for rendering vote message along with action buttons groups.
+     * Each button can send up to 64Kb of data.
+     */
+    private showVoteMessage(showOp, matchData) {
+        const buttonData = {
+            id: matchData.id
+        };
+        const message = ejs.render(voteTemplate, matchData);
+        if (!message.trim) return Promise.resolve();
+        return showOp(
+            message,
+            Extra.markup(Markup.inlineKeyboard([
+                CONFIRMATION_TYPES.map(b => Markup.callbackButton(b.label, JSON.stringify({
+                    ...buttonData,
+                    uid: shortId.generate(),
+                    c: b.value
+                }))),
+                WITH_ME_TYPES.map(b => Markup.callbackButton(b, JSON.stringify({
+                    ...buttonData,
+                    uid: shortId.generate(),
+                    wm: b
+                }))),
+            ])).HTML()
+        );
+    }
 }

@@ -17,7 +17,8 @@
     "@models": "models",
     "@services": "services",
     "@configs": "configs",
-    "@db": "db"
+    "@db": "db",
+    "@root": "."
   },
   "scripts": {
     "clean": "rm -rf ./dist",
