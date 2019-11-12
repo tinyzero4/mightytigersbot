@@ -3,14 +3,12 @@ const moment = require('moment');
 
 const scheduleService = new service.SchedulerService();
 const DEFAULT_SCHEDULE = [{
-    day: 1,
-    time: '05:00',
-  },
-  {
-    day: 4,
-    time: '05:00',
-  },
-];
+  day: 1,
+  time: '05:00',
+}, {
+  day: 4,
+  time: '05:00',
+}];
 
 test('should return match at 05:00 on Thursday on this week', () => {
   const team = {
@@ -29,7 +27,9 @@ test('should return match at 05:00 on Thursday on this week', () => {
       .set({
         hour: 5,
         minute: 0,
-      }).startOf('minute').toDate());
+      })
+      .startOf('minute')
+      .toDate());
 });
 
 test('should return match at 05:00 on Monday on next week', () => {
@@ -46,11 +46,13 @@ test('should return match at 05:00 on Monday on next week', () => {
     .isoWeekday(4);
 
   expect(scheduleService.nextMatchDate(team, event.toDate()))
-    .toEqual(moment.utc(now).add('week', 1)
+    .toEqual(moment.utc(now)
+      .add('week', 1)
       .set({
         hour: 5,
         minute: 0,
-      }).startOf('minute')
+      })
+      .startOf('minute')
       .isoWeekday(1)
       .toDate());
 });
@@ -62,8 +64,11 @@ test('should return match on month rollover', () => {
       time: '05:00',
     }],
   };
-  const timeTravel = moment.utc('2018-04-27T06').toDate();
-  expect(scheduleService.nextMatchDate(team, timeTravel)).toEqual(moment.utc('2018-05-04T05:00').toDate());
+  const timeTravel = moment.utc('2018-04-27T06')
+    .toDate();
+  expect(scheduleService.nextMatchDate(team, timeTravel))
+    .toEqual(moment.utc('2018-05-04T05:00')
+      .toDate());
 });
 
 test('should return next match on same day for schedule with several events per day', () => {
@@ -83,6 +88,9 @@ test('should return next match on same day for schedule with several events per 
       },
     ],
   };
-  const timeTravel = moment.utc('2018-05-25T03').toDate();
-  expect(scheduleService.nextMatchDate(team, timeTravel)).toEqual(moment.utc('2018-05-25T05:00').toDate());
+  const timeTravel = moment.utc('2018-05-25T03')
+    .toDate();
+  expect(scheduleService.nextMatchDate(team, timeTravel))
+    .toEqual(moment.utc('2018-05-25T05:00')
+      .toDate());
 });

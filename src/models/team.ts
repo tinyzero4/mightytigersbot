@@ -6,6 +6,7 @@ export class MatchDay {
     day: number;
     time: string;
 }
+
 export interface PlayerProfile {
     karma?: number;
 }
