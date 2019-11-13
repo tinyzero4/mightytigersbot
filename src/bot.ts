@@ -28,7 +28,7 @@ const bot: any = new Telegraf(BOT_TOKEN);
 const scheduleService = new SchedulerService();
 const teamService = new TeamService(scheduleService);
 const matchService = new MatchService(scheduleService);
-const statsService = new StatsService(matchService, teamService);
+const statsService = new StatsService(matchService);
 const conversationService = new ConversationService();
 
 bot.telegram.getMe().then((botInfo) => bot.options.username = botInfo.username);
@@ -52,9 +52,10 @@ bot.command("/nextmatch", async ({reply, replyWithHTML, replyWithMarkdown, pinCh
     }
 });
 
-bot.command("/seasonstats", ({replyWithMarkdown, chat}) => {
+bot.command("/seasonstats", async ({replyWithMarkdown, chat}) => {
     console.log(`[stats-event][${chat.id}-${chat.title}] : ${new Date()}`);
-    return statsService.getStats(chat.id)
+    const team = await teamService.getTeam(chat.id);
+    return statsService.getStats(team)
         .then(stats => ConversationService.sendStats(replyWithMarkdown, stats));
 });
 
