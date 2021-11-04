@@ -29,7 +29,7 @@ export class StatsService {
         const players: { [key: string]: string; } = {};
         let total = 0;
         matches.forEach(match => {
-            const matchDetails = this.matchService.resolveMatchDetails(match);
+            const matchDetails = this.matchService.getMatchDetails(match);
             if (matchDetails.total < MATCH_MIN_PLAYERS) return;
             matchDetails.confirmationsByType[CONFIRMATION_TYPES[0].value].forEach(c => {
                 const appearences: number = stats[c.pId] || 0;

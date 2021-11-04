@@ -1,33 +1,17 @@
 import "reflect-metadata";
 import Telegraf from "telegraf";
-
-import {
-    BOT_TOKEN,
-} from "@configs/config";
-
-import {
-    TeamService,
-} from "@services/team-service";
-
-import {
-    MatchService,
-} from "@services/match-service";
-
+import { BOT_TOKEN } from "@configs/config";
+import { TeamService } from "@services/team-service";
+import { MatchService } from "@services/match-service";
 import ConversationService from "@services/conversation-service";
 import { SchedulerService } from "@services/scheduler-service";
-
-import {
-    Team,
-} from "@models/team";
-
-import {
-    StatsService,
-} from "@services/stats-service";
+import { Team } from "@models/team";
+import { StatsService } from "@services/stats-service";
 
 const bot: any = new Telegraf(BOT_TOKEN);
 const scheduleService = new SchedulerService();
 const teamService = new TeamService(scheduleService);
-const matchService = new MatchService(scheduleService);
+const matchService = new MatchService(scheduleService, teamService);
 const statsService = new StatsService(matchService);
 const conversationService = new ConversationService();
 
@@ -37,18 +21,18 @@ bot.command("/nextmatch", async ({reply, replyWithHTML, replyWithMarkdown, pinCh
     console.log(`[nextmatch-event][${chat.id}-${chat.title}] : ${new Date()}`);
 
     try {
-        const team = await teamService.resolve(new Team(chat.title, chat.id));
+        const team = await teamService.resolveTeam(new Team(chat.title, chat.id));
 
-        const [match, newMatch] = await matchService.nextMatch(team);
+        const [match, newMatch] = await matchService.nextMatch(team.team_id);
         if (newMatch) {
-            const matchData = matchService.resolveMatchDetails(match);
+            const matchData = matchService.getMatchDetails(match);
             const message = await conversationService.sendMatchVoteMessage(replyWithHTML, matchData);
             await conversationService.pinChatMessage(pinChatMessage, message.message_id);
             const success = await matchService.linkMessageToMatch(match._id, message.message_id);
             if (!!success) ConversationService.sendMatchGreeting(replyWithMarkdown);
         }
     } catch (e) {
-        handleError(e, "Oops, smth went wrong", reply);
+        onError(e, "Oops, smth went wrong", reply);
     }
 });
 
@@ -62,7 +46,7 @@ bot.command("/seasonstats", async ({replyWithMarkdown, chat}) => {
 bot.command("/setschedule", async ({replyWithMarkdown, chat, message}) => {
     console.log(`[schedule-event][${chat.id}-${chat.title}] ${JSON.stringify(message.text)} : ${new Date()}`);
     try {
-        const team = await teamService.resolve(new Team(chat.title, chat.id));
+        const team = await teamService.resolveTeam(new Team(chat.title, chat.id));
         const ok = await teamService.setSchedule(team, message.text);
         if (ok) {
             await matchService.cancelObsoleteMatches(team.team_id);
@@ -71,13 +55,13 @@ bot.command("/setschedule", async ({replyWithMarkdown, chat, message}) => {
             await ConversationService.sendMessage(replyWithMarkdown, "Invalid schedule definition");
         }
     } catch (e) {
-        handleError(e, "Oops, smth went wrong", replyWithMarkdown);
+        onError(e, "Oops, smth went wrong", replyWithMarkdown);
     }
 });
 
 bot.on("message", ({message, replyWithMarkdown}) => {
     const {from, text} = message;
-    const mention = buildSenderMention(from);
+    const mention = buildTgMention(from);
     if (!text) return;
     const userMessage = text.toLowerCase().trim();
     if (userMessage.includes("красава")) {
@@ -97,7 +81,7 @@ bot.on("callback_query", async ({editMessageText, callbackQuery, replyWithMarkdo
     const confirmation: any = {
         matchId: id,
         playerId: from.id,
-        playerName: resolveSenderName(from),
+        playerName: buildUserName(from),
         confirmationId: uid,
         confirmation: c,
         withPlayer: parseInt(wm || 0),
@@ -105,10 +89,10 @@ bot.on("callback_query", async ({editMessageText, callbackQuery, replyWithMarkdo
 
     try {
         const ok = await matchService.validateConfirmation(confirmation);
-        if (!ok) return replyWithMarkdown(`${buildSenderMention(from)},  You don't fool me!`);
+        if (!ok) return replyWithMarkdown(`${buildTgMention(from)},  You don't fool me!`);
         const {match, success, processed} = await matchService.processConfirmation(confirmation);
         if (match && success) {
-            return conversationService.updateMatchVoteMessage(editMessageText, matchService.resolveMatchDetails(match));
+            return conversationService.updateMatchVoteMessage(editMessageText, matchService.getMatchDetails(match));
         } else {
             console.log(`[bot] unsuccessful request ${JSON.stringify(confirmation)} status: {success:${success}, processed:${processed}, match:${match}}`);
         }
@@ -117,15 +101,15 @@ bot.on("callback_query", async ({editMessageText, callbackQuery, replyWithMarkdo
     }
 });
 
-const buildSenderMention = (u) => {
-    return `[${resolveSenderName(u)}](tg://user?id=${u.id})`;
+const buildTgMention = (u) => {
+    return `[${buildUserName(u)}](tg://user?id=${u.id})`;
 };
 
-const resolveSenderName = (u) => {
+const buildUserName = (u) => {
     return `${(u.first_name + (u.last_name || "")) || u.username}`;
 };
 
-const handleError = (err, msg, reply) => {
+const onError = (err, msg, reply) => {
     console.error(`[bot] ${msg}. Reason: ${err}`);
     return ConversationService.sendError(reply, msg);
 };

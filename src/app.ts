@@ -1,6 +1,6 @@
 import "module-alias/register";
 import fs from "fs";
-import http from "http";
+// import http from "http";
 import https from "https";
 import express from "express";
 import bot from "@root/bot";
@@ -12,6 +12,11 @@ import {
 
 const app = express();
 app.use(express.json());
+
+const options = {
+    key: fs.readFileSync(SSL_KEY || "/opt/mightytigers/aws.key"),
+    cert: fs.readFileSync(SSL_CERT || "/opt/mightytigers/aws.pem"),
+};
 
 app.post("/event", async (req, res) => {
     try {
@@ -27,5 +32,5 @@ app.get("/health", (_req, res) => {
     return res.json({version: VERSION});
 });
 
-http.createServer(app).listen(3000);
-https.createServer({key: fs.readFileSync(SSL_KEY), cert: fs.readFileSync(SSL_CERT)}, app).listen(443);
+// http.createServer(app).listen(3000);
+https.createServer(options, app).listen(8443);
