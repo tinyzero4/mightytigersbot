@@ -7,7 +7,7 @@ export const VERSION = "1.0.8";
 
 export const DEFAULT_SCHEDULE = [
   { day: 2, time: "05:30" },
-  { day: 5, time: "05:30" },
+  { day: 4, time: "05:30" },
 ];
 
 export const CONFIRMATION_TYPES = [
