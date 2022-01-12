@@ -113,7 +113,8 @@ export class MatchService {
       else await this.completeMatch(match);
     }
     const next = await this.scheduleNextMatch(team_id);
-    return [next, !!next];
+    console.log(`2 ${JSON.stringify(next)}`);
+    return [next, true];
   }
 
   private hasStarted(match: Match, now: Date): boolean {
@@ -134,7 +135,7 @@ export class MatchService {
       squad: {},
       status: MatchStatus.SCHEDULED
     });
-    return result[0];
+    return result.ops[0];
   }
 
   /**

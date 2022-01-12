@@ -17,12 +17,19 @@ const conversationService = new ConversationService();
 
 bot.telegram.getMe().then((botInfo) => bot.options.username = botInfo.username);
 
+(async () => {
+  teamService.init();
+  matchService.init();
+})().catch(err => {
+  console.error(err);
+});
+
 bot.command("/nextmatch", async ({reply, replyWithHTML, replyWithMarkdown, pinChatMessage, chat}) => {
+
     console.log(`[nextmatch-event][${chat.id}-${chat.title}] : ${new Date()}`);
 
     try {
         const team = await teamService.resolveTeam(new Team(chat.title, chat.id));
-
         const [match, newMatch] = await matchService.nextMatch(team.team_id);
         if (newMatch) {
             const matchData = matchService.getMatchDetails(match);
@@ -63,7 +70,7 @@ bot.on("message", ({message, replyWithMarkdown}) => {
     const {from, text} = message;
     const mention = buildTgMention(from);
     if (!text) return;
-    const userMessage = text.toLowerCase().trim();
+    const userMessage = (text || "").toString().toLowerCase().trim();
     if (userMessage.includes("красава")) {
         return replyWithMarkdown(`${mention}, красава!`);
     } else if (userMessage.includes("плюсы")) {
