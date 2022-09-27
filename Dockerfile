@@ -1,4 +1,4 @@
-FROM node:10.4.0-alpine
+FROM node:18-alpine
 LABEL maintainer="breedish@gmail.com"
 
 WORKDIR /opt/mightytigers

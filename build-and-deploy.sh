@@ -1,4 +1,5 @@
 #!/bin/sh
+
 set -e
 
 # GCP
@@ -11,4 +12,6 @@ set -e
 #sed -i '' -e "s/${COMMIT_ID}/COMMITID/g" deployment/k8s-deployment.yml
 
 # AWS
-npm run clean && npm run package && docker build -t breedish/mightytigersbot . && docker push breedish/mightytigersbot
+npm run clean && npm run package \
+    && docker build --platform=linux/amd64 -t breedish/mightytigersbot . \
+    && docker push breedish/mightytigersbot
