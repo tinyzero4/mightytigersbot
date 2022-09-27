@@ -4,7 +4,8 @@ import _ from "lodash";
 import {
   Collection,
   ObjectID,
-  InsertOneWriteOpResult
+  InsertOneWriteOpResult,
+  WithId,
 } from "mongodb";
 import {
   SchedulerService,
@@ -266,7 +267,7 @@ export class MatchService {
     }
   }
 
-  private async create(match: Match): Promise<InsertOneWriteOpResult> {
+  private async create(match: Match): Promise<InsertOneWriteOpResult<WithId<Match>>> {
     return this.matchColl.insertOne({
       ...match,
       createdAt: new Date(),

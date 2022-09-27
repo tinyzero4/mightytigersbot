@@ -2,7 +2,7 @@ variable "aws_config" {
   type = "map"
 
   default = {
-    "region"                 = "us-east-2"
+    "region"                 = "eu-central-1"
     "auto_scaling_group_min" = 1
     "auto_scaling_group_max" = 1
   }
